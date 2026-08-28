@@ -180,6 +180,33 @@
   .btn-danger{ color: #d98a8a; }
   .btn-danger:hover:not(:disabled){ border-color: var(--accent-bright); color: #f2c9c9; }
 
+  .stat-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+  .stat-tile{
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .stat-tile .stat-number{
+    font-family:'IM Fell English SC', serif;
+    font-size: 1.9rem;
+    color: var(--accent-bright);
+    line-height: 1.1;
+  }
+  .stat-tile .stat-label{
+    display:block;
+    color: var(--ink-dim);
+    font-size: 0.75rem;
+    margin-top: 4px;
+    letter-spacing: 0.3px;
+  }
+  .admin-user-row{ padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .admin-user-row:last-child{ border-bottom:none; }
+  .admin-user-row .admin-user-top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+  .admin-user-row .admin-user-name{ font-family:'IM Fell English SC', serif; font-size:1.02rem; }
+  .admin-user-row .admin-user-meta{ color: var(--ink-dim); font-size: 0.8rem; margin-top: 2px; }
+
   #story-log p{
     margin: 0 0 16px;
     font-size: 1.05rem;
@@ -299,7 +326,10 @@
   <section class="screen" id="dashboard-screen">
     <div class="top-bar">
       <span class="who">Signed in as <strong id="dash-username"></strong></span>
-      <button class="btn-secondary" id="logout-btn-dash">Log out</button>
+      <div class="btn-group">
+        <button class="btn-secondary" id="admin-link-btn" style="display:none;">📊 Admin</button>
+        <button class="btn-secondary" id="logout-btn-dash">Log out</button>
+      </div>
     </div>
     <div id="dash-loading" style="text-align:center; color:var(--ink-dim); font-style:italic; padding: 30px 0;">Gathering your stories...</div>
     <div id="dash-content" style="display:none;">
@@ -310,6 +340,26 @@
       <div class="panel">
         <label style="margin-top:0;">Finished stories</label>
         <div id="dash-history-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADMIN SCREEN (visible only to accounts in ADMIN_USERNAMES; also gated server-side) -->
+  <section class="screen" id="admin-screen">
+    <div class="top-bar">
+      <button class="btn-secondary" id="admin-back-btn">&larr; My Stories</button>
+      <button class="btn-secondary" id="logout-btn-admin">Log out</button>
+    </div>
+    <div id="admin-loading" style="text-align:center; color:var(--ink-dim); font-style:italic; padding: 30px 0;">Gathering usage data...</div>
+    <div id="admin-content" style="display:none;">
+      <div class="panel">
+        <label style="margin-top:0;">Usage at a glance</label>
+        <div class="stat-grid" id="admin-stat-grid"></div>
+      </div>
+      <div class="panel">
+        <label style="margin-top:0;">By user</label>
+        <p class="hint" style="margin-top:0;">Sorted by most recently active.</p>
+        <div id="admin-user-list"></div>
       </div>
     </div>
   </section>
@@ -669,6 +719,12 @@
   const MAX_TURNS_HINT = 9; // soft guidance passed to the model, not a hard cap
   const DEFAULT_MODEL = "claude-sonnet-5";
 
+  // Usernames (lowercase) allowed to see the in-app usage dashboard. This only controls
+  // whether the "📊 Admin" button shows up in the UI — the real gate is server-side, in the
+  // is_nightfall_admin() Postgres function (see nightfall-admin-stats.sql). Edit both lists
+  // together if you add or remove admins.
+  const ADMIN_USERNAMES = ["evan"];
+
   const el = (id) => document.getElementById(id);
 
   const configNoticeScreen = el("config-notice-screen");
@@ -677,7 +733,8 @@
   const setupScreen = el("setup-screen");
   const storyScreen = el("story-screen");
   const endingScreen = el("ending-screen");
-  const screens = [configNoticeScreen, authScreen, dashboardScreen, setupScreen, storyScreen, endingScreen];
+  const adminScreen = el("admin-screen");
+  const screens = [configNoticeScreen, authScreen, dashboardScreen, setupScreen, storyScreen, endingScreen, adminScreen];
 
   const NAME_POOLS = {
     female: ["Maren","Isla","Delphine","Odette","Juniper","Wren","Rosalind","Vesper","Marisol","Astrid","Cleo","Sable","Perpetua","Noor","Winnifred","Talia","Briar","Solveig","Magnolia","Esme"],
@@ -1128,9 +1185,14 @@
   }
 
   // ---------- Dashboard ----------
+  function isAdminUser(){
+    return !!(session && session.user && session.user.username && ADMIN_USERNAMES.indexOf(session.user.username.toLowerCase()) !== -1);
+  }
+
   async function showDashboard(){
     clearError();
     el("dash-username").textContent = session ? session.user.username : "";
+    el("admin-link-btn").style.display = isAdminUser() ? "" : "none";
     showScreen(dashboardScreen);
     el("dash-loading").style.display = "block";
     el("dash-content").style.display = "none";
@@ -1305,6 +1367,109 @@
     showScreen(endingScreen);
   }
 
+  // ---------- Admin usage dashboard ----------
+  // Reads two Postgres RPC functions (see nightfall-admin-stats.sql) that are gated
+  // server-side by is_nightfall_admin() — a non-admin gets a permission error back
+  // no matter what the client-side ADMIN_USERNAMES list says.
+  async function callAdminRpc(fnName){
+    const resp = await authedFetch(REST_URL + "/rpc/" + fnName, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}"
+    });
+    const data = await resp.json().catch(function(){ return null; });
+    if (!resp.ok){
+      const msg = (data && (data.message || data.hint)) || "";
+      const notAdmin = /not authorized|admin|permission/i.test(msg);
+      throw new Error(notAdmin ? "You don't have access to this page." : "Could not load usage data (" + (msg || "unknown error") + ").");
+    }
+    return data;
+  }
+  function fetchAdminSummary(){ return callAdminRpc("admin_summary_stats"); }
+  function fetchAdminUserStats(){ return callAdminRpc("admin_user_stats"); }
+
+  function formatAdminDate(iso){
+    if (!iso) return "never";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "never";
+    return d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function renderAdminStats(summary, users){
+    summary = summary || {};
+    users = users || [];
+
+    const grid = el("admin-stat-grid");
+    grid.innerHTML = "";
+    [
+      { label: "Total users", value: summary.total_users },
+      { label: "New users (7d)", value: summary.new_users_7d },
+      { label: "Active users (7d)", value: summary.active_users_7d },
+      { label: "Total stories", value: summary.total_stories },
+      { label: "In progress", value: summary.stories_in_progress },
+      { label: "Completed", value: summary.stories_completed },
+      { label: "Started (7d)", value: summary.stories_started_7d }
+    ].forEach(function(t){
+      const tile = document.createElement("div");
+      tile.className = "stat-tile";
+      const num = document.createElement("div");
+      num.className = "stat-number";
+      num.textContent = (t.value === null || t.value === undefined) ? "—" : t.value;
+      const label = document.createElement("span");
+      label.className = "stat-label";
+      label.textContent = t.label;
+      tile.appendChild(num);
+      tile.appendChild(label);
+      grid.appendChild(tile);
+    });
+
+    const list = el("admin-user-list");
+    list.innerHTML = "";
+    if (!users.length){
+      const p = document.createElement("p");
+      p.className = "hint";
+      p.style.marginTop = "0";
+      p.textContent = "No accounts yet.";
+      list.appendChild(p);
+      return;
+    }
+    users.forEach(function(u){
+      const row = document.createElement("div");
+      row.className = "admin-user-row";
+      const top = document.createElement("div");
+      top.className = "admin-user-top";
+      const name = document.createElement("span");
+      name.className = "admin-user-name";
+      name.textContent = u.username || "(unknown)";
+      const counts = document.createElement("span");
+      counts.textContent = (u.stories_finished || 0) + " finished / " + (u.stories_started || 0) + " started";
+      top.appendChild(name);
+      top.appendChild(counts);
+      const meta = document.createElement("div");
+      meta.className = "admin-user-meta";
+      meta.textContent = "Joined " + formatAdminDate(u.created_at) + " · Last active " + formatAdminDate(u.last_active);
+      row.appendChild(top);
+      row.appendChild(meta);
+      list.appendChild(row);
+    });
+  }
+
+  async function showAdminScreen(){
+    clearError();
+    showScreen(adminScreen);
+    el("admin-loading").style.display = "block";
+    el("admin-content").style.display = "none";
+    try{
+      const results = await Promise.all([fetchAdminSummary(), fetchAdminUserStats()]);
+      renderAdminStats(results[0], results[1]);
+      el("admin-content").style.display = "block";
+    } catch(e){
+      showError((e && e.message) || "Could not load usage data.");
+    } finally {
+      el("admin-loading").style.display = "none";
+    }
+  }
+
   // ---------- Guided setup mode ----------
   let setupMode = "freeform";
   function setSetupMode(mode){
@@ -1459,6 +1624,9 @@
   });
 
   el("logout-btn-dash").addEventListener("click", logout);
+  el("logout-btn-admin").addEventListener("click", logout);
+  el("admin-link-btn").addEventListener("click", showAdminScreen);
+  el("admin-back-btn").addEventListener("click", showDashboard);
   el("logout-btn-setup").addEventListener("click", logout);
   el("logout-btn-story").addEventListener("click", logout);
   el("logout-btn-ending").addEventListener("click", logout);
