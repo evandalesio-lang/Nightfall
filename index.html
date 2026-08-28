@@ -1387,6 +1387,18 @@
   }
   function fetchAdminSummary(){ return callAdminRpc("admin_summary_stats"); }
   function fetchAdminUserStats(){ return callAdminRpc("admin_user_stats"); }
+  async function adminDeleteUser(targetUserId){
+    const resp = await authedFetch(REST_URL + "/rpc/admin_delete_user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ target_user_id: targetUserId })
+    });
+    if (!resp.ok){
+      const data = await resp.json().catch(function(){ return null; });
+      const msg = (data && (data.message || data.hint)) || "";
+      throw new Error(msg || "Could not remove that account.");
+    }
+  }
 
   function formatAdminDate(iso){
     if (!iso) return "never";
@@ -1438,25 +1450,62 @@
       row.className = "admin-user-row";
       const top = document.createElement("div");
       top.className = "admin-user-top";
+      const nameGroup = document.createElement("span");
       const name = document.createElement("span");
       name.className = "admin-user-name";
       name.textContent = u.username || "(unknown)";
-      const counts = document.createElement("span");
+      nameGroup.appendChild(name);
+      top.appendChild(nameGroup);
+
+      const isSelf = !!(session && session.user && u.username && session.user.username.toLowerCase() === String(u.username).toLowerCase());
+      if (isSelf){
+        const youTag = document.createElement("span");
+        youTag.className = "hint";
+        youTag.style.marginLeft = "8px";
+        youTag.textContent = "(you)";
+        nameGroup.appendChild(youTag);
+      } else if (u.id){
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "btn-secondary btn-danger";
+        removeBtn.textContent = "Remove";
+        removeBtn.addEventListener("click", async function(){
+          const uname = u.username || "this user";
+          if (!confirm("Permanently remove \"" + uname + "\"? This deletes their account and every one of their stories, in progress and finished. This cannot be undone.")) return;
+          const typed = prompt("Type \"" + uname + "\" to confirm:");
+          if (typed === null) return;
+          if (typed.trim().toLowerCase() !== uname.toLowerCase()){
+            showError("That didn't match \"" + uname + "\" — nothing was removed.");
+            return;
+          }
+          removeBtn.disabled = true;
+          removeBtn.textContent = "Removing...";
+          try{
+            await adminDeleteUser(u.id);
+            await refreshAdminScreen();
+          } catch(e){
+            showError((e && e.message) || "Could not remove that account.");
+            removeBtn.disabled = false;
+            removeBtn.textContent = "Remove";
+          }
+        });
+        top.appendChild(removeBtn);
+      }
+
+      const counts = document.createElement("div");
+      counts.className = "admin-user-meta";
       counts.textContent = (u.stories_finished || 0) + " finished / " + (u.stories_started || 0) + " started";
-      top.appendChild(name);
-      top.appendChild(counts);
       const meta = document.createElement("div");
       meta.className = "admin-user-meta";
       meta.textContent = "Joined " + formatAdminDate(u.created_at) + " · Last active " + formatAdminDate(u.last_active);
       row.appendChild(top);
+      row.appendChild(counts);
       row.appendChild(meta);
       list.appendChild(row);
     });
   }
 
-  async function showAdminScreen(){
+  async function refreshAdminScreen(){
     clearError();
-    showScreen(adminScreen);
     el("admin-loading").style.display = "block";
     el("admin-content").style.display = "none";
     try{
@@ -1468,6 +1517,10 @@
     } finally {
       el("admin-loading").style.display = "none";
     }
+  }
+  async function showAdminScreen(){
+    showScreen(adminScreen);
+    await refreshAdminScreen();
   }
 
   // ---------- Guided setup mode ----------
