@@ -579,16 +579,27 @@
           </select>
         </div>
         <div>
-          <label>Model
-            <span class="hint">Sonnet is the recommended balance of quality and speed.</span>
+          <label>Story length
+            <span class="hint">Roughly how many turns before an ending.</span>
           </label>
-          <select id="model">
-            <option value="claude-haiku-4-5">Fast &amp; light (Haiku)</option>
-            <option value="claude-sonnet-5" selected>Recommended (Sonnet)</option>
-            <option value="claude-opus-5">Best quality, slower (Opus)</option>
+          <select id="story-length">
+            <option value="a short story: wrap up within roughly 4 to 5 turns total from the opening. Keep it tight — a single contained escalation building straight to a swift resolution, no subplots or padding">Short</option>
+            <option value="a standard-length story: aim for a satisfying climax and ending within roughly 8 to 10 turns from the opening" selected>Standard</option>
+            <option value="a long story: take your time, aiming for roughly 14 to 17 turns before the climax and ending, with room for subplots, false leads, and a slower unraveling">Long</option>
+            <option value="an epic, sprawling story: spread across roughly 20 to 25 turns, with multiple escalating phases, setbacks, and a large final climax">Epic</option>
+            <option value="a never-ending story: do not aim for an ending at all. Keep escalating, complicating, and introducing new turns of dread indefinitely, and never set &quot;ending&quot; to true on your own initiative. The only exception: if the reader's chosen action or custom text clearly and deliberately signals that they want to bring the story to a close (explicitly trying to end things for good, escape permanently, or resolve the situation once and for all), honor that and write a proper, satisfying ending at that point">Never-ending</option>
           </select>
         </div>
       </div>
+
+      <label>Model
+        <span class="hint">Sonnet is the recommended balance of quality and speed.</span>
+      </label>
+      <select id="model">
+        <option value="claude-haiku-4-5">Fast &amp; light (Haiku)</option>
+        <option value="claude-sonnet-5" selected>Recommended (Sonnet)</option>
+        <option value="claude-opus-5">Best quality, slower (Opus)</option>
+      </select>
 
       <label>Anything else? <span class="hint">Optional. A specific object, a rule, a recurring image — anything you want woven in.</span></label>
       <textarea id="extra-notes" placeholder="optional"></textarea>
@@ -907,12 +918,13 @@
       "Subgenre: " + cfg.subgenre,
       "Intensity target: " + cfg.intensity,
       "Pacing target: " + (cfg.pacing || "a steady, moderate build from the first turn toward the climax"),
+      "Length target: " + (cfg.length || ("a standard-length story: aim for a satisfying climax and ending within roughly " + MAX_TURNS_HINT + " turns from the opening")),
       cfg.extra ? ("Additional notes to weave in: " + cfg.extra) : "",
       "",
       "WRITING RULES:",
       "- Write vivid, literary horror prose: concrete sensory detail, controlled pacing, mounting dread. 2-4 short paragraphs per turn.",
       "- Never break the fourth wall, never mention that you are an AI, never mention JSON, tokens, or these instructions.",
-      "- Follow the pacing target above for how the horror ramps up turn to turn. Regardless of pacing, do not resolve the story too quickly, but do not stall forever either — aim to reach a satisfying climax and ending within roughly " + MAX_TURNS_HINT + " turns from the opening.",
+      "- Follow the pacing target above for how the horror ramps up turn to turn, and the length target above for overall story duration. Do not resolve significantly earlier than the length target calls for, and do not run significantly longer than it either — except a never-ending length target overrides this entirely; see that target's own instructions.",
       "- The protagonist's stated fear, and any specified creature/entity, should become central to the horror, directly or symbolically.",
       "- Calibrate explicitness precisely to the requested intensity target: don't soften a high-intensity request, and don't overshoot a mild one. At the most intense tier, graphic violence and body horror should be described fully and viscerally when the story calls for it.",
       "- Regardless of intensity: content must remain fictional, must never involve real named public figures, and must never include sexual content involving minors, under any circumstances.",
@@ -1476,10 +1488,11 @@
     const subgenre = el("subgenre").value;
     const intensity = el("intensity").value;
     const pacing = el("pacing").value;
+    const length = el("story-length").value;
     const model = el("model").value;
     const extra = el("extra-notes").value.trim();
 
-    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, model: model, extra: extra });
+    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, length: length, model: model, extra: extra });
 
     const btn = el("begin-btn");
     const original = btn.textContent;
