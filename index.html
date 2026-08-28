@@ -136,9 +136,39 @@
   .btn-secondary{ background: transparent; border-color: var(--border); color: var(--ink-dim); font-size: 0.85rem; padding: 8px 14px; }
   .btn-secondary:hover:not(:disabled){ border-color: var(--ink-dim); box-shadow:none; color: var(--ink); }
 
-  .auth-tabs{ display:flex; gap:8px; margin-bottom: 22px; }
-  .auth-tabs button{ flex:1; background: transparent; border-color: var(--border); color: var(--ink-dim); }
-  .auth-tabs button.active{ border-color: var(--accent-bright); color: var(--ink); box-shadow: 0 0 10px var(--glow); }
+  .auth-tabs, .mode-tabs{ display:flex; gap:8px; margin-bottom: 22px; }
+  .auth-tabs button, .mode-tabs button{ flex:1; background: transparent; border-color: var(--border); color: var(--ink-dim); }
+  .auth-tabs button.active, .mode-tabs button.active{ border-color: var(--accent-bright); color: var(--ink); box-shadow: 0 0 10px var(--glow); }
+
+  .mode-panel{ display:none; }
+  .mode-panel.active{ display:block; }
+
+  .name-row{ display:flex; gap:10px; align-items:flex-start; }
+  .name-row input{ flex:1; }
+  .name-row button{ flex-shrink:0; white-space:nowrap; }
+
+  .trait-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .trait-chip{
+    border:1px solid var(--border);
+    background: var(--bg-panel-2);
+    color: var(--ink-dim);
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-family:'Special Elite', monospace;
+    cursor:pointer;
+    transition: all 0.15s ease;
+  }
+  .trait-chip:hover{ color: var(--ink); }
+  .trait-chip.selected{
+    border-color: var(--accent-bright);
+    color: var(--ink);
+    background: linear-gradient(180deg, #2a1010, #150a0a);
+    box-shadow: 0 0 8px var(--glow);
+  }
+  .trait-chip:disabled, .trait-chip.chip-disabled{ opacity:0.35; cursor:not-allowed; }
+
+  .other-input{ display:none; margin-top:8px; }
 
   .top-bar{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; gap: 10px; }
   .top-bar .who{ color: var(--ink-dim); font-size: 0.85rem; }
@@ -283,28 +313,217 @@
   <!-- SETUP SCREEN -->
   <section class="screen" id="setup-screen">
     <div class="panel">
-      <label style="margin-top:0;">Your character's name</label>
-      <input type="text" id="char-name" placeholder="e.g. Maren Ellery">
+      <div class="mode-tabs">
+        <button type="button" id="tab-freeform" class="active">Write it yourself</button>
+        <button type="button" id="tab-guided">Guided</button>
+      </div>
 
-      <label>Who are they?
-        <span class="hint">Age, personality, occupation, a habit or flaw — anything that makes them feel real.</span>
-      </label>
-      <textarea id="char-desc" placeholder="e.g. A skeptical 34-year-old paramedic who moved back to her hometown after her mother's death. Doesn't believe in ghosts. Smokes when nervous."></textarea>
+      <!-- FREEFORM MODE (original prompts) -->
+      <div class="mode-panel active" id="mode-freeform">
+        <label style="margin-top:0;">Your character's name</label>
+        <input type="text" id="char-name" placeholder="e.g. Maren Ellery">
 
-      <label>What are they afraid of?
-        <span class="hint">A phobia, a memory, a specific kind of dread. This will shape the horror.</span>
-      </label>
-      <input type="text" id="char-fear" placeholder="e.g. Being buried alive / losing control of her own body / the dark in enclosed spaces">
+        <label>Who are they?
+          <span class="hint">Age, personality, occupation, a habit or flaw — anything that makes them feel real.</span>
+        </label>
+        <textarea id="char-desc" placeholder="e.g. A skeptical 34-year-old paramedic who moved back to her hometown after her mother's death. Doesn't believe in ghosts. Smokes when nervous."></textarea>
 
-      <label>The world / setting
-        <span class="hint">Place, time period, atmosphere — as much or as little detail as you like.</span>
-      </label>
-      <textarea id="world-desc" placeholder="e.g. A fog-locked coastal town in New England, present day, where the tide has stopped going out all the way for the last three nights."></textarea>
+        <label>What are they afraid of?
+          <span class="hint">A phobia, a memory, a specific kind of dread. This will shape the horror.</span>
+        </label>
+        <input type="text" id="char-fear" placeholder="e.g. Being buried alive / losing control of her own body / the dark in enclosed spaces">
 
-      <label>Creatures or entities to include
-        <span class="hint">Optional — a specific monster, cryptid, ghost type, or kind of entity you want woven in.</span>
-      </label>
-      <input type="text" id="char-creatures" placeholder="e.g. a skinwalker / something that wears familiar faces / a hive-mind of moths">
+        <label>The world / setting
+          <span class="hint">Place, time period, atmosphere — as much or as little detail as you like.</span>
+        </label>
+        <textarea id="world-desc" placeholder="e.g. A fog-locked coastal town in New England, present day, where the tide has stopped going out all the way for the last three nights."></textarea>
+
+        <label>Creatures or entities to include
+          <span class="hint">Optional — a specific monster, cryptid, ghost type, or kind of entity you want woven in.</span>
+        </label>
+        <input type="text" id="char-creatures" placeholder="e.g. a skinwalker / something that wears familiar faces / a hive-mind of moths">
+      </div>
+
+      <!-- GUIDED MODE (dropdowns / pickers) -->
+      <div class="mode-panel" id="mode-guided">
+        <label style="margin-top:0;">Your character's name</label>
+        <div class="name-row">
+          <input type="text" id="g-name" placeholder="e.g. Maren Ellery">
+          <button type="button" class="btn-secondary" id="g-random-name-btn">🎲 Random name</button>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Gender</label>
+            <select id="g-gender">
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="unspecified">Nonbinary / unspecified</option>
+            </select>
+          </div>
+          <div>
+            <label>Age</label>
+            <select id="g-age"></select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Occupation</label>
+            <select id="g-occupation" data-other="g-occupation-other">
+              <option value="paramedic">Paramedic</option>
+              <option value="nurse">Nurse</option>
+              <option value="police officer">Police officer</option>
+              <option value="schoolteacher">Schoolteacher</option>
+              <option value="journalist">Journalist</option>
+              <option value="photographer">Photographer</option>
+              <option value="park ranger">Park ranger</option>
+              <option value="graduate student">Graduate student</option>
+              <option value="software developer">Software developer</option>
+              <option value="long-haul truck driver">Long-haul truck driver</option>
+              <option value="bartender">Bartender</option>
+              <option value="antiques dealer">Antiques dealer</option>
+              <option value="librarian">Librarian</option>
+              <option value="funeral director">Funeral director</option>
+              <option value="real estate agent">Real estate agent</option>
+              <option value="night-shift security guard">Night-shift security guard</option>
+              <option value="fisherman">Fisherman</option>
+              <option value="retired detective">Retired detective</option>
+              <option value="stay-at-home parent">Stay-at-home parent</option>
+              <option value="traveling salesperson">Traveling salesperson</option>
+              <option value="member of the clergy">Member of the clergy</option>
+              <option value="paranormal investigator">Paranormal investigator</option>
+              <option value="unemployed drifter">Unemployed drifter</option>
+              <option value="__other__">Other (write your own)</option>
+            </select>
+            <input type="text" class="other-input" id="g-occupation-other" placeholder="Their occupation">
+          </div>
+          <div>
+            <label>Habit or flaw</label>
+            <select id="g-habit" data-other="g-habit-other">
+              <option value="smokes when nervous">Smokes when nervous</option>
+              <option value="can't resist investigating strange noises">Can't resist investigating strange noises</option>
+              <option value="refuses to believe in the supernatural">Refuses to believe in the supernatural</option>
+              <option value="overly trusting of strangers">Overly trusting of strangers</option>
+              <option value="drinks to cope with stress">Drinks to cope with stress</option>
+              <option value="keeps secrets from loved ones">Keeps secrets from loved ones</option>
+              <option value="never admits when they're afraid">Never admits when they're afraid</option>
+              <option value="obsessive need for control">Obsessive need for control</option>
+              <option value="sleepwalks">Sleepwalks</option>
+              <option value="talks to themself under stress">Talks to themself under stress</option>
+              <option value="superstitious to a fault">Superstitious to a fault</option>
+              <option value="holds grudges">Holds grudges</option>
+              <option value="__other__">Other (write your own)</option>
+            </select>
+            <input type="text" class="other-input" id="g-habit-other" placeholder="Their habit or flaw">
+          </div>
+        </div>
+
+        <label>Personality traits
+          <span class="hint">Pick up to 4.</span>
+        </label>
+        <div class="trait-chips" id="g-traits">
+          <button type="button" class="trait-chip" data-value="skeptical">Skeptical</button>
+          <button type="button" class="trait-chip" data-value="anxious">Anxious</button>
+          <button type="button" class="trait-chip" data-value="reckless">Reckless</button>
+          <button type="button" class="trait-chip" data-value="overprotective">Overprotective</button>
+          <button type="button" class="trait-chip" data-value="curious to a fault">Curious to a fault</button>
+          <button type="button" class="trait-chip" data-value="stubborn">Stubborn</button>
+          <button type="button" class="trait-chip" data-value="guilt-ridden">Guilt-ridden</button>
+          <button type="button" class="trait-chip" data-value="charismatic">Charismatic</button>
+          <button type="button" class="trait-chip" data-value="withdrawn">Withdrawn</button>
+          <button type="button" class="trait-chip" data-value="meticulous">Meticulous</button>
+          <button type="button" class="trait-chip" data-value="impulsive">Impulsive</button>
+          <button type="button" class="trait-chip" data-value="superstitious">Superstitious</button>
+          <button type="button" class="trait-chip" data-value="cynical">Cynical</button>
+          <button type="button" class="trait-chip" data-value="naive">Naive</button>
+          <button type="button" class="trait-chip" data-value="overly trusting">Overly trusting</button>
+        </div>
+
+        <label>What are they afraid of?</label>
+        <select id="g-fear" data-other="g-fear-other">
+          <option value="being buried alive">Being buried alive</option>
+          <option value="drowning / open water">Drowning / open water</option>
+          <option value="the dark">The dark</option>
+          <option value="losing control of their own body">Losing control of their own body</option>
+          <option value="being watched or stalked">Being watched or stalked</option>
+          <option value="insects or swarms">Insects or swarms</option>
+          <option value="heights">Heights</option>
+          <option value="enclosed spaces">Enclosed spaces (claustrophobia)</option>
+          <option value="fire">Fire</option>
+          <option value="losing a loved one">Losing a loved one</option>
+          <option value="being forgotten or erased">Being forgotten or erased</option>
+          <option value="mirrors and reflections">Mirrors and reflections</option>
+          <option value="blood">Blood</option>
+          <option value="dolls or mannequins">Dolls or mannequins</option>
+          <option value="isolation / being alone">Isolation / being alone</option>
+          <option value="being hunted">Being hunted</option>
+          <option value="losing their sanity">Losing their sanity</option>
+          <option value="something wearing a familiar face">Something wearing a familiar face</option>
+          <option value="__other__">Other (write your own)</option>
+        </select>
+        <input type="text" class="other-input" id="g-fear-other" placeholder="What they're afraid of">
+
+        <div class="row">
+          <div>
+            <label>The world / setting</label>
+            <select id="g-setting" data-other="g-setting-other">
+              <option value="a fog-locked coastal town">A fog-locked coastal town</option>
+              <option value="an isolated mountain cabin">An isolated mountain cabin</option>
+              <option value="an ordinary suburban house">An ordinary suburban house</option>
+              <option value="an abandoned asylum or hospital">An abandoned asylum or hospital</option>
+              <option value="a rural farmhouse">A rural farmhouse</option>
+              <option value="an underground bunker or tunnel network">An underground bunker or tunnels</option>
+              <option value="a city apartment building at night">A city apartment building at night</option>
+              <option value="a snowbound research station">A snowbound research station</option>
+              <option value="a small town hiding a dark secret">A small town hiding a dark secret</option>
+              <option value="a remote off-grid island">A remote off-grid island</option>
+              <option value="an old family estate or mansion">An old family estate or mansion</option>
+              <option value="a roadside motel on a desert highway">A roadside motel on a desert highway</option>
+              <option value="a summer camp in the woods">A summer camp in the woods</option>
+              <option value="subway or transit tunnels">Subway or transit tunnels</option>
+              <option value="a space station or off-world outpost">A space station or off-world outpost</option>
+              <option value="__other__">Other (write your own)</option>
+            </select>
+            <input type="text" class="other-input" id="g-setting-other" placeholder="Place, time period, atmosphere">
+          </div>
+          <div>
+            <label>Time period</label>
+            <select id="g-era" data-other="g-era-other">
+              <option value="present day">Present day</option>
+              <option value="the 1980s">The 1980s</option>
+              <option value="the Victorian era">The Victorian era</option>
+              <option value="the near future">The near future</option>
+              <option value="a post-apocalyptic future">Post-apocalyptic</option>
+              <option value="__other__">Other (write your own)</option>
+            </select>
+            <input type="text" class="other-input" id="g-era-other" placeholder="Time period">
+          </div>
+        </div>
+
+        <label>Creatures or entities to include
+          <span class="hint">Optional.</span>
+        </label>
+        <select id="g-creature" data-other="g-creature-other">
+          <option value="">Leave unspecified — let the story decide</option>
+          <option value="a ghost or restless spirit">A ghost or restless spirit</option>
+          <option value="a demon">A demon</option>
+          <option value="a skinwalker or shapeshifter">A skinwalker or shapeshifter</option>
+          <option value="a regional cryptid">A regional cryptid</option>
+          <option value="a possessed object">A possessed object</option>
+          <option value="a doppelganger">A doppelganger</option>
+          <option value="a hive-mind swarm">A hive-mind swarm</option>
+          <option value="an ancient god or cosmic entity">An ancient god or cosmic entity</option>
+          <option value="a human serial killer or stalker">A human serial killer or stalker</option>
+          <option value="the undead / zombies">The undead / zombies</option>
+          <option value="a witch or coven">A witch or coven</option>
+          <option value="a vampire">A vampire</option>
+          <option value="a werewolf">A werewolf</option>
+          <option value="a rogue AI or malfunctioning technology">A rogue AI or malfunctioning technology</option>
+          <option value="__other__">Other (write your own)</option>
+        </select>
+        <input type="text" class="other-input" id="g-creature-other" placeholder="Creature or entity to include">
+      </div>
 
       <div class="row">
         <div>
@@ -421,6 +640,13 @@
   const storyScreen = el("story-screen");
   const endingScreen = el("ending-screen");
   const screens = [configNoticeScreen, authScreen, dashboardScreen, setupScreen, storyScreen, endingScreen];
+
+  const NAME_POOLS = {
+    female: ["Maren","Isla","Delphine","Odette","Juniper","Wren","Rosalind","Vesper","Marisol","Astrid","Cleo","Sable","Perpetua","Noor","Winnifred","Talia","Briar","Solveig","Magnolia","Esme"],
+    male: ["Elias","Corwin","Silas","Dorian","Emory","Callum","Ambrose","Rowan","Thaddeus","Malachi","Julian","Osric","Barnaby","Idris","Emmett","Absalom","Fenwick","Grayson","Leander","Alaric"],
+    unspecified: ["Wren","Ash","River","Sage","Rowan","Bly","Marlow","Sol","Fen","Indigo","Vale","Briar","Nico","Sky","Rune"],
+    last: ["Ellery","Voss","Marrow","Hollis","Castellan","Thorne","Ashworth","Winters","Corbin","Blackwood","Deveraux","Marsh","Whitlock","Sorrel","Kestrel","Fairweather","Nightingale","Grimm","Sutcliffe","Pryce"]
+  };
 
   const storyLog = el("story-log");
   const choicesEl = el("choices");
@@ -900,6 +1126,7 @@
         if (!confirm("This will permanently delete your in-progress story. Continue?")) return;
         await deleteSave(inProgress.id);
         cfgCache = null; currentSaveId = null;
+        setSetupMode("freeform");
         showScreen(setupScreen);
       });
       btnRow.appendChild(continueBtn);
@@ -1002,6 +1229,116 @@
     showScreen(endingScreen);
   }
 
+  // ---------- Guided setup mode ----------
+  let setupMode = "freeform";
+  function setSetupMode(mode){
+    setupMode = mode;
+    el("tab-freeform").classList.toggle("active", mode === "freeform");
+    el("tab-guided").classList.toggle("active", mode === "guided");
+    el("mode-freeform").classList.toggle("active", mode === "freeform");
+    el("mode-guided").classList.toggle("active", mode === "guided");
+    clearError();
+  }
+  el("tab-freeform").addEventListener("click", function(){ setSetupMode("freeform"); });
+  el("tab-guided").addEventListener("click", function(){ setSetupMode("guided"); });
+
+  // Populate the age dropdown once at load (8 to 85, default 30).
+  (function populateAgeSelect(){
+    const sel = el("g-age");
+    for (let a = 8; a <= 85; a++){
+      const opt = document.createElement("option");
+      opt.value = String(a);
+      opt.textContent = String(a);
+      if (a === 30) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  })();
+
+  function randomName(){
+    const gender = el("g-gender").value;
+    const firstPool = NAME_POOLS[gender] || NAME_POOLS.unspecified;
+    const first = firstPool[Math.floor(Math.random() * firstPool.length)];
+    const last = NAME_POOLS.last[Math.floor(Math.random() * NAME_POOLS.last.length)];
+    el("g-name").value = first + " " + last;
+  }
+  el("g-random-name-btn").addEventListener("click", randomName);
+
+  // Personality trait chips — toggle selection, capped at 4.
+  const TRAIT_CAP = 4;
+  Array.prototype.forEach.call(document.querySelectorAll("#g-traits .trait-chip"), function(chip){
+    chip.addEventListener("click", function(){
+      const selectedCount = document.querySelectorAll("#g-traits .trait-chip.selected").length;
+      if (!chip.classList.contains("selected") && selectedCount >= TRAIT_CAP) return;
+      chip.classList.toggle("selected");
+    });
+  });
+  function getSelectedTraits(){
+    return Array.prototype.map.call(document.querySelectorAll("#g-traits .trait-chip.selected"), function(b){ return b.getAttribute("data-value"); });
+  }
+
+  // "Other (write your own)" reveal for guided <select> fields.
+  Array.prototype.forEach.call(document.querySelectorAll("select[data-other]"), function(sel){
+    const otherInput = el(sel.getAttribute("data-other"));
+    function sync(){
+      const isOther = sel.value === "__other__";
+      otherInput.style.display = isOther ? "block" : "none";
+      if (!isOther) otherInput.value = "";
+    }
+    sel.addEventListener("change", sync);
+    sync();
+  });
+  function selVal(id, otherId){
+    const sel = el(id);
+    if (sel.value === "__other__") return el(otherId).value.trim();
+    return sel.value;
+  }
+
+  function buildFreeformCfg(){
+    const name = el("char-name").value.trim();
+    const desc = el("char-desc").value.trim();
+    const fear = el("char-fear").value.trim();
+    const world = el("world-desc").value.trim();
+    const creatures = el("char-creatures").value.trim();
+    if (!name && !desc && !world){
+      showError("Give your character or world at least a little detail — a name, a description, or a setting.");
+      return null;
+    }
+    return { name: name, desc: desc, fear: fear, world: world, creatures: creatures };
+  }
+
+  function buildGuidedCfg(){
+    const name = el("g-name").value.trim();
+    const gender = el("g-gender").value;
+    const genderWord = gender === "male" ? "man" : gender === "female" ? "woman" : "person";
+    const age = el("g-age").value;
+    const occupation = selVal("g-occupation", "g-occupation-other");
+    const habit = selVal("g-habit", "g-habit-other");
+    const traits = getSelectedTraits();
+    const fear = selVal("g-fear", "g-fear-other");
+    const setting = selVal("g-setting", "g-setting-other");
+    const era = selVal("g-era", "g-era-other");
+    const creature = selVal("g-creature", "g-creature-other");
+
+    if (!name && !occupation && !setting){
+      showError("Give your character or world at least a little detail — a name, an occupation, or a setting.");
+      return null;
+    }
+
+    const descSentences = [];
+    if (age && genderWord){
+      descSentences.push("A " + age + "-year-old " + genderWord + (occupation ? " working as a " + occupation + "." : "."));
+    } else if (occupation){
+      descSentences.push("Works as a " + occupation + ".");
+    }
+    if (traits.length) descSentences.push("Personality: " + traits.join(", ") + ".");
+    if (habit) descSentences.push("Habit or flaw: " + habit + ".");
+    const desc = descSentences.join(" ");
+
+    const world = [setting, era].filter(Boolean).join(", ");
+
+    return { name: name, desc: desc, fear: fear, world: world, creatures: creature };
+  }
+
   // ---------- Wire up events ----------
   let authMode = "login";
   function setAuthMode(mode){
@@ -1046,7 +1383,7 @@
   });
 
   el("logout-btn-dash").addEventListener("click", logout);
-  el("dash-new-btn").addEventListener("click", function(){ showScreen(setupScreen); });
+  el("dash-new-btn").addEventListener("click", function(){ setSetupMode("freeform"); showScreen(setupScreen); });
   el("save-exit-btn").addEventListener("click", showDashboard);
   el("back-to-dashboard-btn").addEventListener("click", showDashboard);
   el("download-btn").addEventListener("click", downloadStory);
@@ -1057,22 +1394,15 @@
 
   el("begin-btn").addEventListener("click", async function(){
     clearError();
-    const name = el("char-name").value.trim();
-    const desc = el("char-desc").value.trim();
-    const fear = el("char-fear").value.trim();
-    const world = el("world-desc").value.trim();
-    const creatures = el("char-creatures").value.trim();
+    const identity = setupMode === "guided" ? buildGuidedCfg() : buildFreeformCfg();
+    if (!identity) return;
+
     const subgenre = el("subgenre").value;
     const intensity = el("intensity").value;
     const model = el("model").value;
     const extra = el("extra-notes").value.trim();
 
-    if (!name && !desc && !world){
-      showError("Give your character or world at least a little detail — a name, a description, or a setting.");
-      return;
-    }
-
-    const cfg = { name: name, desc: desc, fear: fear, world: world, creatures: creatures, subgenre: subgenre, intensity: intensity, model: model, extra: extra };
+    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, model: model, extra: extra });
 
     const btn = el("begin-btn");
     const original = btn.textContent;
