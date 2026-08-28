@@ -642,15 +642,6 @@
         </div>
       </div>
 
-      <label>Model
-        <span class="hint">Sonnet is the recommended balance of quality and speed.</span>
-      </label>
-      <select id="model">
-        <option value="claude-haiku-4-5">Fast &amp; light (Haiku)</option>
-        <option value="claude-sonnet-5" selected>Recommended (Sonnet)</option>
-        <option value="claude-opus-5">Best quality, slower (Opus)</option>
-      </select>
-
       <label>Anything else? <span class="hint">Optional. A specific object, a rule, a recurring image — anything you want woven in.</span></label>
       <textarea id="extra-notes" placeholder="optional"></textarea>
 
@@ -717,7 +708,7 @@
   const FUNCTIONS_URL = SUPABASE_URL + "/functions/v1";
 
   const MAX_TURNS_HINT = 9; // soft guidance passed to the model, not a hard cap
-  const DEFAULT_MODEL = "claude-sonnet-5";
+  const DEFAULT_MODEL = "claude-opus-5"; // model choice removed from the UI (v0.11) — always Opus now
 
   // Usernames (lowercase) allowed to see the in-app usage dashboard. This only controls
   // whether the "📊 Admin" button shows up in the UI — the real gate is server-side, in the
@@ -1710,7 +1701,7 @@
     const intensity = el("intensity").value;
     const pacing = el("pacing").value;
     const length = el("story-length").value;
-    const model = el("model").value;
+    const model = DEFAULT_MODEL;
     const extra = el("extra-notes").value.trim();
 
     const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, length: length, model: model, extra: extra });
