@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nightfall — Interactive Horror Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=IM+Fell+English+SC&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0b0908;
+    --bg-panel: #14100f;
+    --bg-panel-2: #1c1613;
+    --ink: #d8cfc2;
+    --ink-dim: #8f8577;
+    --accent: #8a1414;
+    --accent-bright: #c62828;
+    --border: #2c2420;
+    --glow: rgba(198,40,40,0.35);
+    --focus: #d8cfc2;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background: radial-gradient(ellipse at 50% 0%, #191311 0%, var(--bg) 60%);
+    color: var(--ink);
+    font-family: 'Special Elite', 'Courier New', monospace;
+    line-height:1.6;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    background-image: radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 3px 3px;
+    opacity:0.5;
+    z-index:1;
+  }
+  .vignette{
+    position:fixed; inset:0; pointer-events:none; z-index:2;
+    box-shadow: inset 0 0 18vw rgba(0,0,0,0.85);
+  }
+  #app{
+    position:relative; z-index:3;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 20px 40px;
+  }
+  h1.title{
+    font-family:'Creepster', cursive;
+    font-size: 3rem;
+    text-align:center;
+    color: var(--accent-bright);
+    letter-spacing: 3px;
+    margin: 10px 0 4px;
+    text-shadow: 0 0 12px var(--glow), 0 0 2px #000;
+    animation: flicker 6s infinite;
+  }
+  @keyframes flicker{
+    0%,19%,21%,23%,25%,54%,56%,100%{opacity:1;}
+    20%,24%,55%{opacity:0.72;}
+  }
+  p.subtitle{
+    text-align:center;
+    color: var(--ink-dim);
+    font-style: italic;
+    margin: 0 0 34px;
+    font-size: 0.95rem;
+  }
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+  .panel{
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 26px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+  }
+  label{
+    display:block;
+    font-family:'IM Fell English SC', serif;
+    letter-spacing: 0.5px;
+    color: var(--ink);
+    margin: 18px 0 6px;
+    font-size: 1rem;
+  }
+  label:first-child{ margin-top: 0; }
+  .hint{
+    display:block;
+    font-family:'Special Elite', monospace;
+    color: var(--ink-dim);
+    font-size: 0.78rem;
+    font-style: italic;
+    margin-top: 2px;
+  }
+  input[type="text"], input[type="password"], textarea, select{
+    width:100%;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font-family: 'Special Elite', monospace;
+    font-size: 0.95rem;
+    padding: 10px 12px;
+    border-radius: 4px;
+    resize: vertical;
+  }
+  input:focus, textarea:focus, select:focus{
+    outline: none;
+    border-color: var(--accent-bright);
+    box-shadow: 0 0 0 2px var(--glow);
+  }
+  textarea{ min-height: 64px; }
+  .row{ display:flex; gap:14px; }
+  .row > div{ flex:1; }
+  button{
+    font-family: 'IM Fell English SC', serif;
+    letter-spacing: 0.5px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid var(--accent);
+    background: linear-gradient(180deg, #2a1010, #150a0a);
+    color: var(--ink);
+    padding: 12px 20px;
+    transition: all 0.15s ease;
+  }
+  button:hover:not(:disabled){
+    background: linear-gradient(180deg, #3a1414, #1c0d0d);
+    border-color: var(--accent-bright);
+    box-shadow: 0 0 14px var(--glow);
+  }
+  button:disabled{ opacity: 0.4; cursor: not-allowed; }
+  .btn-primary{ display:block; width:100%; margin-top: 26px; padding: 14px; font-size: 1.1rem; }
+  .btn-secondary{ background: transparent; border-color: var(--border); color: var(--ink-dim); font-size: 0.85rem; padding: 8px 14px; }
+  .btn-secondary:hover:not(:disabled){ border-color: var(--ink-dim); box-shadow:none; color: var(--ink); }
+
+  .auth-tabs{ display:flex; gap:8px; margin-bottom: 22px; }
+  .auth-tabs button{ flex:1; background: transparent; border-color: var(--border); color: var(--ink-dim); }
+  .auth-tabs button.active{ border-color: var(--accent-bright); color: var(--ink); box-shadow: 0 0 10px var(--glow); }
+
+  .top-bar{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; gap: 10px; }
+  .top-bar .who{ color: var(--ink-dim); font-size: 0.85rem; }
+
+  .history-row{ display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 10px; }
+  .history-row:last-child{ border-bottom:none; }
+  .history-row span{ font-size: 0.92rem; }
+
+  #story-log p{
+    margin: 0 0 16px;
+    font-size: 1.05rem;
+    opacity: 0;
+    animation: reveal 1.1s ease forwards;
+  }
+  @keyframes reveal{ from{opacity:0; transform: translateY(4px);} to{opacity:1; transform:none;} }
+  #story-log .beat-divider{
+    text-align:center; color: var(--accent); letter-spacing: 4px; margin: 26px 0; font-size: 0.85rem; opacity:0.7;
+  }
+  #story-log .choice-echo, #ending-log .choice-echo{
+    color: var(--ink-dim);
+    font-style: italic;
+    border-left: 2px solid var(--accent);
+    padding-left: 12px;
+    margin: 20px 0 18px;
+  }
+  #choices{ margin-top: 24px; display:flex; flex-direction:column; gap:10px; }
+  #choices button{ text-align:left; }
+  .custom-action-divider{
+    text-align:center;
+    color: var(--ink-dim);
+    font-size: 0.78rem;
+    font-style: italic;
+    letter-spacing: 1px;
+    margin: 18px 0 10px;
+  }
+  .custom-action-row{ display:flex; gap:10px; }
+  .custom-action-row input{ flex:1; }
+  .custom-action-row button{ flex-shrink:0; }
+  #loading{
+    display:none;
+    text-align:center;
+    color: var(--ink-dim);
+    font-style: italic;
+    margin-top: 24px;
+    letter-spacing: 1px;
+  }
+  #loading.active{ display:block; }
+  #loading .dots::after{
+    content:'';
+    animation: dots 1.4s steps(4,end) infinite;
+  }
+  @keyframes dots{ 0%{content:'';} 25%{content:'.';} 50%{content:'..';} 75%{content:'...';} 100%{content:'';} }
+
+  #error-banner{
+    display:none;
+    background: #2a0e0e;
+    border: 1px solid var(--accent-bright);
+    color: #f2c9c9;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 18px;
+    font-size: 0.88rem;
+  }
+  #error-banner.active{ display:block; }
+
+  .ending-title{
+    font-family:'Creepster', cursive;
+    font-size: 2.4rem;
+    text-align:center;
+    color: var(--accent-bright);
+    margin: 30px 0 20px;
+    letter-spacing: 2px;
+  }
+  .controls-row{ display:flex; gap:10px; justify-content:center; margin-top: 26px; flex-wrap: wrap; }
+  .top-controls{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; }
+  .turn-tag{ color: var(--ink-dim); font-size: 0.8rem; letter-spacing: 1px; }
+  a, a:visited{ color: var(--accent-bright); }
+  ::selection{ background: var(--accent); color: #fff; }
+
+  .app-footer{
+    text-align:center;
+    color: var(--ink-dim);
+    font-size: 0.75rem;
+    margin-top: 50px;
+    letter-spacing: 0.5px;
+    opacity: 0.65;
+  }
+  code{ background: var(--bg-panel-2); padding: 1px 5px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="vignette"></div>
+<div id="app">
+  <h1 class="title">NIGHTFALL</h1>
+  <p class="subtitle">Your personal horror story made by your choices</p>
+
+  <div id="error-banner"></div>
+
+  <!-- CONFIG NOTICE (shown only if the backend hasn't been set up yet) -->
+  <section class="screen" id="config-notice-screen">
+    <div class="panel">
+      <label style="margin-top:0;">This copy isn't connected yet</label>
+      <p>This app talks to a small backend (for accounts and to keep the story-writing API key private) that hasn't been configured in this file. Whoever is setting this up needs to open the HTML file in a text editor, find the <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> constants near the top of the <code>&lt;script&gt;</code> tag, and fill them in with values from their Supabase project. See the setup guide that came with this file for the full walkthrough.</p>
+    </div>
+  </section>
+
+  <!-- AUTH SCREEN -->
+  <section class="screen" id="auth-screen">
+    <div class="panel">
+      <div class="auth-tabs">
+        <button type="button" id="tab-login" class="active">Log In</button>
+        <button type="button" id="tab-signup">Sign Up</button>
+      </div>
+      <label style="margin-top:0;">Username</label>
+      <input type="text" id="auth-username" placeholder="e.g. jamie" autocomplete="username">
+      <label>Password</label>
+      <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password">
+      <button class="btn-primary" id="auth-submit">Log In</button>
+      <p class="hint" style="text-align:center; margin-top:16px;">No email needed — just pick a username and password. Your friends each get their own account and their own saved stories.</p>
+    </div>
+  </section>
+
+  <!-- DASHBOARD SCREEN -->
+  <section class="screen" id="dashboard-screen">
+    <div class="top-bar">
+      <span class="who">Signed in as <strong id="dash-username"></strong></span>
+      <button class="btn-secondary" id="logout-btn-dash">Log out</button>
+    </div>
+    <div id="dash-loading" style="text-align:center; color:var(--ink-dim); font-style:italic; padding: 30px 0;">Gathering your stories...</div>
+    <div id="dash-content" style="display:none;">
+      <div class="panel" id="dash-continue" style="display:none;"></div>
+      <div class="panel" id="dash-new-panel">
+        <button class="btn-primary" id="dash-new-btn" style="margin-top:0;">Start a new story</button>
+      </div>
+      <div class="panel">
+        <label style="margin-top:0;">Finished stories</label>
+        <div id="dash-history-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETUP SCREEN -->
+  <section class="screen" id="setup-screen">
+    <div class="panel">
+      <label style="margin-top:0;">Your character's name</label>
+      <input type="text" id="char-name" placeholder="e.g. Maren Ellery">
+
+      <label>Who are they?
+        <span class="hint">Age, personality, occupation, a habit or flaw — anything that makes them feel real.</span>
+      </label>
+      <textarea id="char-desc" placeholder="e.g. A skeptical 34-year-old paramedic who moved back to her hometown after her mother's death. Doesn't believe in ghosts. Smokes when nervous."></textarea>
+
+      <label>What are they afraid of?
+        <span class="hint">A phobia, a memory, a specific kind of dread. This will shape the horror.</span>
+      </label>
+      <input type="text" id="char-fear" placeholder="e.g. Being buried alive / losing control of her own body / the dark in enclosed spaces">
+
+      <label>The world / setting
+        <span class="hint">Place, time period, atmosphere — as much or as little detail as you like.</span>
+      </label>
+      <textarea id="world-desc" placeholder="e.g. A fog-locked coastal town in New England, present day, where the tide has stopped going out all the way for the last three nights."></textarea>
+
+      <label>Creatures or entities to include
+        <span class="hint">Optional — a specific monster, cryptid, ghost type, or kind of entity you want woven in.</span>
+      </label>
+      <input type="text" id="char-creatures" placeholder="e.g. a skinwalker / something that wears familiar faces / a hive-mind of moths">
+
+      <div class="row">
+        <div>
+          <label>Subgenre</label>
+          <select id="subgenre">
+            <option value="psychological horror">Psychological horror</option>
+            <option value="supernatural / ghost story">Supernatural / ghost story</option>
+            <option value="cosmic / Lovecraftian horror">Cosmic / Lovecraftian horror</option>
+            <option value="existential horror">Existential horror</option>
+            <option value="gothic horror">Gothic horror</option>
+            <option value="slasher / survival horror">Slasher / survival horror</option>
+            <option value="folk horror">Folk horror</option>
+            <option value="occult / demonic horror">Occult / demonic horror</option>
+            <option value="body horror">Body horror</option>
+            <option value="monster / creature horror">Monster / creature horror</option>
+            <option value="quiet horror (subtle, literary dread)">Quiet horror (subtle, literary)</option>
+            <option value="techno-horror / AI horror">Techno-horror / AI horror</option>
+            <option value="apocalyptic horror">Apocalyptic horror</option>
+            <option value="home invasion / isolation horror">Home invasion / isolation</option>
+            <option value="found-footage style">Found-footage style</option>
+            <option value="splatterpunk (extreme, visceral horror)">Splatterpunk (extreme)</option>
+          </select>
+        </div>
+        <div>
+          <label>Intensity</label>
+          <select id="intensity">
+            <option value="restrained, atmospheric dread with minimal graphic content">Mild — atmosphere &amp; dread</option>
+            <option value="moderate tension with some frightening or violent moments" selected>Moderate</option>
+            <option value="intense, visceral horror with graphic moments where earned by the story">Intense</option>
+            <option value="extreme — unflinching, visceral horror; graphic violence, gore, and body horror described fully and without holding back, whenever the story calls for it">Extreme</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Model
+        <span class="hint">Sonnet is the recommended balance of quality and speed.</span>
+      </label>
+      <select id="model">
+        <option value="claude-haiku-4-5">Fast &amp; light (Haiku)</option>
+        <option value="claude-sonnet-5" selected>Recommended (Sonnet)</option>
+        <option value="claude-opus-5">Best quality, slower (Opus)</option>
+      </select>
+
+      <label>Anything else? <span class="hint">Optional. A specific object, a rule, a recurring image — anything you want woven in.</span></label>
+      <textarea id="extra-notes" placeholder="optional"></textarea>
+
+      <button class="btn-primary" id="begin-btn">Begin the story</button>
+    </div>
+  </section>
+
+  <!-- STORY SCREEN -->
+  <section class="screen" id="story-screen">
+    <div class="top-controls">
+      <span class="turn-tag" id="turn-tag">Chapter 1</span>
+      <button class="btn-secondary" id="save-exit-btn">Save &amp; exit</button>
+    </div>
+    <div class="panel">
+      <div id="story-log"></div>
+      <div id="loading"><span class="dots">Something stirs</span></div>
+      <div id="choices-wrapper">
+        <div id="choices"></div>
+        <div class="custom-action-divider">or write your own</div>
+        <div class="custom-action-row">
+          <input type="text" id="custom-action-input" placeholder="What do you do?" maxlength="200">
+          <button id="custom-action-btn" class="btn-secondary">Do this</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENDING SCREEN -->
+  <section class="screen" id="ending-screen">
+    <div class="panel">
+      <div class="ending-title">THE END</div>
+      <div id="ending-log"></div>
+      <div class="controls-row">
+        <button id="download-btn">Download this story</button>
+        <button class="btn-secondary" id="back-to-dashboard-btn">Back to your stories</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="app-footer">Made by Evan Dalesio using Claude Code · V 0.1</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // =========================================================================
+  // CONFIG — fill these in with your own Supabase project's values.
+  // Dashboard > Project Settings > API > Project URL / anon public key.
+  // See the setup guide that came with this file.
+  // =========================================================================
+  const SUPABASE_URL = "https://cbacukckhqebltktmgut.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_Ob2QUAFsNbBleeeOuckqPw_qkSS9Afk";
+  const EDGE_FUNCTION_NAME = "story-turn";
+
+  const CONFIGURED = !/YOUR_SUPABASE/.test(SUPABASE_URL) && !/YOUR_SUPABASE/.test(SUPABASE_ANON_KEY) && SUPABASE_URL && SUPABASE_ANON_KEY;
+
+  const AUTH_URL = SUPABASE_URL + "/auth/v1";
+  const REST_URL = SUPABASE_URL + "/rest/v1";
+  const FUNCTIONS_URL = SUPABASE_URL + "/functions/v1";
+
+  const MAX_TURNS_HINT = 9; // soft guidance passed to the model, not a hard cap
+  const DEFAULT_MODEL = "claude-sonnet-5";
+
+  const el = (id) => document.getElementById(id);
+
+  const configNoticeScreen = el("config-notice-screen");
+  const authScreen = el("auth-screen");
+  const dashboardScreen = el("dashboard-screen");
+  const setupScreen = el("setup-screen");
+  const storyScreen = el("story-screen");
+  const endingScreen = el("ending-screen");
+  const screens = [configNoticeScreen, authScreen, dashboardScreen, setupScreen, storyScreen, endingScreen];
+
+  const storyLog = el("story-log");
+  const choicesEl = el("choices");
+  const choicesWrapperEl = el("choices-wrapper");
+  const loadingEl = el("loading");
+  const errorBanner = el("error-banner");
+  const turnTag = el("turn-tag");
+
+  let session = null;      // { access_token, refresh_token, expires_at, user:{id, username} }
+  let cfgCache = null;     // current story's character/world config
+  let currentSaveId = null;
+  let state = {
+    turn: 0,
+    messages: [],      // Anthropic-style message history
+    transcript: [],    // [{ type:'narration'|'choice', text }]
+    model: DEFAULT_MODEL
+  };
+
+  function showScreen(name){
+    screens.forEach(s => s.classList.remove("active"));
+    name.classList.add("active");
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  function showError(msg){
+    errorBanner.textContent = msg;
+    errorBanner.classList.add("active");
+  }
+  function clearError(){
+    errorBanner.classList.remove("active");
+    errorBanner.textContent = "";
+  }
+
+  // ---------- Auth / session helpers (plain REST calls, no SDK needed) ----------
+  function validUsername(u){ return /^[a-z0-9_-]{3,20}$/i.test(u); }
+  function usernameToEmail(u){ return u.trim().toLowerCase() + "@nightfall.local"; }
+
+  function toSession(data, fallbackUsername){
+    return {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_at: Date.now() + ((data.expires_in || 3600) * 1000),
+      user: {
+        id: data.user && data.user.id,
+        username: (data.user && data.user.user_metadata && data.user.user_metadata.username) || fallbackUsername.trim().toLowerCase()
+      }
+    };
+  }
+
+  function mapAuthError(data, action){
+    const msg = (data && (data.error_description || data.msg || data.error || data.message)) || "";
+    const lower = String(msg).toLowerCase();
+    if (lower.includes("already registered") || lower.includes("already exists") || lower.includes("user_already_exists")){
+      return "That username is already taken.";
+    }
+    if (lower.includes("invalid login credentials")){
+      return "Wrong username or password.";
+    }
+    if (lower.includes("password") && (lower.includes("6") || lower.includes("short") || lower.includes("length"))){
+      return "Password must be at least 6 characters.";
+    }
+    return msg || ("Could not " + action + ". Try again.");
+  }
+
+  function saveSession(s){
+    session = s;
+    try{ localStorage.setItem("nightfall_session", JSON.stringify(s)); } catch(e){}
+  }
+  function loadSession(){
+    try{
+      const raw = localStorage.getItem("nightfall_session");
+      if (raw) session = JSON.parse(raw);
+    } catch(e){ session = null; }
+    return session;
+  }
+  function clearSession(){
+    session = null;
+    try{ localStorage.removeItem("nightfall_session"); } catch(e){}
+  }
+
+  async function signUp(username, password){
+    const resp = await fetch(AUTH_URL + "/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY },
+      body: JSON.stringify({ email: usernameToEmail(username), password: password, data: { username: username.trim().toLowerCase() } })
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(mapAuthError(data, "sign up"));
+    if (!data.access_token){
+      throw new Error("Account created, but no session came back. Ask whoever set this app up to confirm 'Confirm email' is turned OFF in the Supabase Auth settings.");
+    }
+    return toSession(data, username);
+  }
+
+  async function signIn(username, password){
+    const resp = await fetch(AUTH_URL + "/token?grant_type=password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY },
+      body: JSON.stringify({ email: usernameToEmail(username), password: password })
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(mapAuthError(data, "log in"));
+    return toSession(data, username);
+  }
+
+  async function refreshSessionToken(){
+    if (!session || !session.refresh_token) return false;
+    try{
+      const resp = await fetch(AUTH_URL + "/token?grant_type=refresh_token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY },
+        body: JSON.stringify({ refresh_token: session.refresh_token })
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) return false;
+      saveSession(toSession(data, session.user.username));
+      return true;
+    } catch(e){ return false; }
+  }
+
+  async function ensureFreshSession(){
+    if (!session) return false;
+    if (Date.now() > session.expires_at - 60000) return await refreshSessionToken();
+    return true;
+  }
+
+  async function authedFetch(url, opts, isRetry){
+    opts = opts || {};
+    await ensureFreshSession();
+    if (!session) throw new Error("Your session expired. Please log in again.");
+    const headers = Object.assign({
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization": "Bearer " + session.access_token
+    }, opts.headers || {});
+    const resp = await fetch(url, Object.assign({}, opts, { headers: headers }));
+    if (resp.status === 401 && !isRetry){
+      const ok = await refreshSessionToken();
+      if (ok) return authedFetch(url, opts, true);
+    }
+    return resp;
+  }
+
+  async function logout(){
+    try{
+      if (session){
+        await fetch(AUTH_URL + "/logout", {
+          method: "POST",
+          headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + session.access_token }
+        });
+      }
+    } catch(e){ /* best-effort */ }
+    clearSession();
+    cfgCache = null;
+    currentSaveId = null;
+    state = { turn: 0, messages: [], transcript: [], model: DEFAULT_MODEL };
+    showScreen(authScreen);
+  }
+
+  // ---------- Saved-story REST helpers ----------
+  async function fetchInProgressSave(){
+    const resp = await authedFetch(REST_URL + "/saves?select=*&status=eq.in_progress&limit=1");
+    if (!resp.ok) return null;
+    const rows = await resp.json();
+    return rows[0] || null;
+  }
+  async function fetchCompletedSaves(){
+    const resp = await authedFetch(REST_URL + "/saves?select=id,title,turn,created_at,updated_at&status=eq.completed&order=updated_at.desc");
+    if (!resp.ok) return [];
+    return await resp.json();
+  }
+  async function fetchSaveById(id){
+    const resp = await authedFetch(REST_URL + "/saves?id=eq." + encodeURIComponent(id) + "&select=*");
+    if (!resp.ok) return null;
+    const rows = await resp.json();
+    return rows[0] || null;
+  }
+  async function createSave(cfg){
+    const resp = await authedFetch(REST_URL + "/saves", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Prefer": "return=representation" },
+      body: JSON.stringify({ title: cfg.name || "Untitled", cfg: cfg, messages: [], transcript: [], turn: 0, status: "in_progress" })
+    });
+    if (!resp.ok){
+      let data = null;
+      try{ data = await resp.json(); } catch(e){}
+      if (data && data.code === "23505"){
+        throw new Error("You already have a story in progress — finish or abandon it from your dashboard first.");
+      }
+      throw new Error("Could not start a new story. Try again.");
+    }
+    const rows = await resp.json();
+    return rows[0];
+  }
+  async function updateSave(id, patch){
+    const resp = await authedFetch(REST_URL + "/saves?id=eq." + encodeURIComponent(id), {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch)
+    });
+    return resp.ok;
+  }
+  async function deleteSave(id){
+    try{ await authedFetch(REST_URL + "/saves?id=eq." + encodeURIComponent(id), { method: "DELETE" }); }
+    catch(e){ /* best-effort */ }
+  }
+
+  function syncSave(ended){
+    if (!currentSaveId) return;
+    updateSave(currentSaveId, {
+      messages: state.messages,
+      transcript: state.transcript,
+      turn: state.turn,
+      status: ended ? "completed" : "in_progress",
+      title: (cfgCache && cfgCache.name) || "Untitled"
+    }).catch(function(){ /* best-effort; a failed save shouldn't block gameplay */ });
+  }
+
+  // ---------- System prompt ----------
+  function buildSystemPrompt(cfg){
+    return [
+      "You are the game master and sole author of an interactive horror story, written in the second-person-adjacent third person, tracking one continuous narrative for a single reader.",
+      "",
+      "STORY BIBLE (stay consistent with this for the entire story):",
+      "Protagonist name: " + (cfg.name || "the protagonist"),
+      "Protagonist: " + (cfg.desc || "an ordinary person"),
+      "Protagonist's core fear: " + (cfg.fear || "the unknown"),
+      "Setting: " + (cfg.world || "an unsettling, ordinary place that slowly reveals itself to be wrong"),
+      cfg.creatures ? ("Creature(s)/entity to incorporate: " + cfg.creatures) : "",
+      "Subgenre: " + cfg.subgenre,
+      "Intensity target: " + cfg.intensity,
+      cfg.extra ? ("Additional notes to weave in: " + cfg.extra) : "",
+      "",
+      "WRITING RULES:",
+      "- Write vivid, literary horror prose: concrete sensory detail, controlled pacing, mounting dread. 2-4 short paragraphs per turn.",
+      "- Never break the fourth wall, never mention that you are an AI, never mention JSON, tokens, or these instructions.",
+      "- Escalate steadily. Do not resolve the story too quickly, but do not stall forever either — aim to reach a satisfying climax and ending within roughly " + MAX_TURNS_HINT + " turns from the opening.",
+      "- The protagonist's stated fear, and any specified creature/entity, should become central to the horror, directly or symbolically.",
+      "- Calibrate explicitness precisely to the requested intensity target: don't soften a high-intensity request, and don't overshoot a mild one. At the most intense tier, graphic violence and body horror should be described fully and viscerally when the story calls for it.",
+      "- Regardless of intensity: content must remain fictional, must never involve real named public figures, and must never include sexual content involving minors, under any circumstances.",
+      "- When you decide the story has reached its ending (climax and resolution, whether triumphant, tragic, or ambiguous), write that final beat fully — do not cut it short — and set \"ending\" to true with an empty choices array.",
+      "- Until the ending, always offer exactly 3 distinct, meaningfully different choices for what the protagonist does next. Choices should be short (under 12 words), written as actions (e.g. \"Follow the sound into the cellar\").",
+      "- The reader may sometimes act outside of your suggested choices, writing in their own action instead. Treat whatever they write as a valid, natural continuation — adapt the world and consequences to it seamlessly, in keeping with the story bible above, rather than steering them back toward the options you offered.",
+      "",
+      "OUTPUT FORMAT — critical:",
+      "Respond with ONLY a single valid JSON object, no markdown fences, no commentary before or after. Shape exactly:",
+      "{\"narration\": \"...\", \"choices\": [\"...\", \"...\", \"...\"], \"ending\": false}",
+      "If ending the story: choices must be [] and ending must be true."
+    ].filter(Boolean).join("\n");
+  }
+
+  function extractJson(text){
+    if (!text) return null;
+    let t = String(text).trim();
+    t = t.replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/```\s*$/, "");
+    const start = t.indexOf("{");
+    const end = t.lastIndexOf("}");
+    if (start === -1 || end === -1 || end < start) return null;
+    const candidate = t.slice(start, end + 1);
+    try{ return JSON.parse(candidate); } catch(e){ return null; }
+  }
+
+  // ---------- Calling the story-writing backend (never touches the Anthropic key directly) ----------
+  async function callStoryTurn(systemPrompt, messages, model, opts){
+    opts = opts || {};
+    const retryOnBadJson = opts.retryOnBadJson !== false;
+    let resp;
+    try{
+      resp = await authedFetch(FUNCTIONS_URL + "/" + EDGE_FUNCTION_NAME, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ system: systemPrompt, messages: messages, model: model })
+      });
+    } catch(networkErr){
+      throw new Error("Could not reach the story server. Check your internet connection and try again.");
+    }
+
+    let data = null;
+    try{ data = await resp.json(); } catch(e){}
+
+    if (!resp.ok){
+      const detail = (data && data.error && data.error.message) || (data && data.error) || "";
+      if (resp.status === 401) throw new Error("Your session expired. Please log in again.");
+      if (resp.status === 429) throw new Error("Rate limited. Wait a moment and try again.");
+      throw new Error("Story server error (" + resp.status + "): " + (detail || "unknown error"));
+    }
+
+    const rawText = ((data && data.content) || []).map(function(b){ return b.text || ""; }).join("");
+    let parsed = extractJson(rawText);
+
+    if (!parsed && retryOnBadJson){
+      const retryMessages = messages.concat([
+        { role: "assistant", content: rawText },
+        { role: "user", content: "That was not valid JSON in the required format. Respond again with ONLY the JSON object: {\"narration\": string, \"choices\": string[], \"ending\": boolean}. No other text." }
+      ]);
+      return callStoryTurn(systemPrompt, retryMessages, model, { retryOnBadJson: false });
+    }
+    if (!parsed){
+      parsed = { narration: rawText || "The darkness swallows the next moment. (The story's response could not be read as expected.)", choices: [], ending: true };
+    }
+    return parsed;
+  }
+
+  // ---------- Story log rendering ----------
+  function appendNarration(text, turnLabel){
+    if (turnLabel){
+      const div = document.createElement("div");
+      div.className = "beat-divider";
+      div.textContent = "◆ ◆ ◆";
+      storyLog.appendChild(div);
+    }
+    text.split(/\n{2,}/).forEach(function(para){
+      if (!para.trim()) return;
+      const p = document.createElement("p");
+      p.textContent = para.trim();
+      storyLog.appendChild(p);
+    });
+  }
+  function appendChoiceEcho(text){
+    const div = document.createElement("div");
+    div.className = "choice-echo";
+    div.textContent = "→ " + text;
+    storyLog.appendChild(div);
+  }
+  function renderChoices(choices){
+    choicesEl.innerHTML = "";
+    choices.forEach(function(choice){
+      const btn = document.createElement("button");
+      btn.textContent = choice;
+      btn.addEventListener("click", function(){ handleChoice(choice); });
+      choicesEl.appendChild(btn);
+    });
+  }
+  function setLoading(on){
+    loadingEl.classList.toggle("active", on);
+    choicesWrapperEl.style.display = on ? "none" : "block";
+    el("custom-action-input").disabled = on;
+    el("custom-action-btn").disabled = on;
+  }
+
+  // ---------- Turn loop ----------
+  async function runTurn(userContent){
+    clearError();
+    setLoading(true);
+    state.messages.push({ role: "user", content: userContent });
+    try{
+      const systemPrompt = buildSystemPrompt(cfgCache);
+      const result = await callStoryTurn(systemPrompt, state.messages, state.model);
+      state.messages.push({ role: "assistant", content: JSON.stringify(result) });
+      state.turn += 1;
+      turnTag.textContent = "Chapter " + state.turn;
+
+      appendNarration(result.narration, state.turn > 1);
+      state.transcript.push({ type: "narration", text: result.narration });
+
+      const isEnding = !!result.ending || !result.choices || result.choices.length === 0;
+      syncSave(isEnding);
+
+      if (isEnding){
+        finishStory();
+      } else {
+        renderChoices(result.choices);
+      }
+    } catch(err){
+      showError((err && err.message) || "Something went wrong.");
+      state.messages.pop();
+      if (err && err.message && err.message.toLowerCase().indexOf("session expired") !== -1){
+        clearSession();
+        showScreen(authScreen);
+      } else if (state.turn === 0 && state.transcript.length === 0){
+        showDashboard();
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleChoice(choiceText){
+    appendChoiceEcho(choiceText);
+    state.transcript.push({ type: "choice", text: choiceText });
+    runTurn("The reader chooses: \"" + choiceText + "\". Continue the story from here.");
+  }
+
+  function handleCustomAction(){
+    const input = el("custom-action-input");
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = "";
+    appendChoiceEcho(text);
+    state.transcript.push({ type: "choice", text: text });
+    runTurn("The reader ignores the suggested options and instead does this: \"" + text + "\". Continue the story from here, adapting naturally to it.");
+  }
+
+  function finishStory(){
+    choicesEl.innerHTML = "";
+    el("ending-log").innerHTML = storyLog.innerHTML;
+    showScreen(endingScreen);
+  }
+
+  function buildDownloadText(){
+    const cfg = cfgCache || {};
+    const lines = [];
+    lines.push("NIGHTFALL — a personal horror story");
+    lines.push("=".repeat(40));
+    lines.push("Character: " + (cfg.name || "(unnamed)"));
+    if (cfg.desc) lines.push("About them: " + cfg.desc);
+    if (cfg.fear) lines.push("Their fear: " + cfg.fear);
+    if (cfg.world) lines.push("Setting: " + cfg.world);
+    if (cfg.creatures) lines.push("Creatures/entities: " + cfg.creatures);
+    lines.push("Subgenre: " + cfg.subgenre);
+    lines.push("");
+    lines.push("-".repeat(40));
+    lines.push("");
+    state.transcript.forEach(function(entry){
+      if (entry.type === "choice"){
+        lines.push("> " + entry.text);
+        lines.push("");
+      } else {
+        lines.push(entry.text);
+        lines.push("");
+      }
+    });
+    return lines.join("\n");
+  }
+
+  function downloadStory(){
+    const text = buildDownloadText();
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const safeName = ((cfgCache && cfgCache.name) || "story").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    a.href = url;
+    a.download = "nightfall-" + (safeName || "story") + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+  }
+
+  // ---------- Dashboard ----------
+  async function showDashboard(){
+    clearError();
+    el("dash-username").textContent = session ? session.user.username : "";
+    showScreen(dashboardScreen);
+    el("dash-loading").style.display = "block";
+    el("dash-content").style.display = "none";
+    try{
+      const results = await Promise.all([fetchInProgressSave(), fetchCompletedSaves()]);
+      renderDashboard(results[0], results[1]);
+      el("dash-content").style.display = "block";
+    } catch(e){
+      showError("Could not load your stories. Try refreshing.");
+    } finally {
+      el("dash-loading").style.display = "none";
+    }
+  }
+
+  function renderDashboard(inProgress, completed){
+    const continueBox = el("dash-continue");
+    continueBox.innerHTML = "";
+    if (inProgress){
+      continueBox.style.display = "block";
+      const cfg = inProgress.cfg || {};
+      const p = document.createElement("p");
+      p.style.marginTop = "0";
+      p.textContent = "You have a story in progress: \"" + (cfg.name || "Untitled") + "\" — Chapter " + (inProgress.turn || 1) + ".";
+      continueBox.appendChild(p);
+
+      const btnRow = document.createElement("div");
+      btnRow.className = "controls-row";
+      const continueBtn = document.createElement("button");
+      continueBtn.textContent = "Continue this story";
+      continueBtn.addEventListener("click", function(){ goToStoryFromSave(inProgress); });
+      const abandonBtn = document.createElement("button");
+      abandonBtn.className = "btn-secondary";
+      abandonBtn.textContent = "Abandon it & start fresh";
+      abandonBtn.addEventListener("click", async function(){
+        if (!confirm("This will permanently delete your in-progress story. Continue?")) return;
+        await deleteSave(inProgress.id);
+        cfgCache = null; currentSaveId = null;
+        showScreen(setupScreen);
+      });
+      btnRow.appendChild(continueBtn);
+      btnRow.appendChild(abandonBtn);
+      continueBox.appendChild(btnRow);
+    } else {
+      continueBox.style.display = "none";
+    }
+
+    el("dash-new-panel").style.display = inProgress ? "none" : "block";
+
+    const list = el("dash-history-list");
+    list.innerHTML = "";
+    if (!completed.length){
+      const p = document.createElement("p");
+      p.className = "hint";
+      p.style.marginTop = "0";
+      p.textContent = "No finished stories yet.";
+      list.appendChild(p);
+    } else {
+      completed.forEach(function(save){
+        const row = document.createElement("div");
+        row.className = "history-row";
+        const span = document.createElement("span");
+        const date = new Date(save.updated_at).toLocaleDateString();
+        span.textContent = (save.title || "Untitled") + " — " + save.turn + " chapters, finished " + date;
+        const viewBtn = document.createElement("button");
+        viewBtn.className = "btn-secondary";
+        viewBtn.textContent = "View";
+        viewBtn.addEventListener("click", function(){ viewCompletedSave(save.id); });
+        row.appendChild(span);
+        row.appendChild(viewBtn);
+        list.appendChild(row);
+      });
+    }
+  }
+
+  async function goToStoryFromSave(save){
+    currentSaveId = save.id;
+    cfgCache = save.cfg || {};
+    state = {
+      turn: save.turn || 0,
+      messages: save.messages || [],
+      transcript: save.transcript || [],
+      model: (save.cfg && save.cfg.model) || DEFAULT_MODEL
+    };
+    storyLog.innerHTML = "";
+    choicesEl.innerHTML = "";
+    el("custom-action-input").value = "";
+    showScreen(storyScreen);
+    turnTag.textContent = "Chapter " + Math.max(state.turn, 1);
+
+    if (state.messages.length === 0){
+      runTurn("Begin the story. Set the scene, introduce the atmosphere and the first unsettling detail, and end with the first three choices.");
+      return;
+    }
+
+    let afterFirst = false;
+    state.transcript.forEach(function(entry){
+      if (entry.type === "narration"){
+        appendNarration(entry.text, afterFirst);
+        afterFirst = true;
+      } else {
+        appendChoiceEcho(entry.text);
+      }
+    });
+
+    const lastAssistant = state.messages.slice().reverse().find(function(m){ return m.role === "assistant"; });
+    const parsed = lastAssistant ? extractJson(typeof lastAssistant.content === "string" ? lastAssistant.content : "") : null;
+    if (parsed && parsed.choices && parsed.choices.length){
+      renderChoices(parsed.choices);
+    } else {
+      runTurn("Continue the story from exactly where it left off, and provide the next three choices.");
+    }
+  }
+
+  async function viewCompletedSave(id){
+    clearError();
+    const save = await fetchSaveById(id);
+    if (!save){ showError("Could not load that story."); return; }
+    cfgCache = save.cfg || {};
+    state.transcript = save.transcript || [];
+    const log = el("ending-log");
+    log.innerHTML = "";
+    (save.transcript || []).forEach(function(entry){
+      if (entry.type === "narration"){
+        entry.text.split(/\n{2,}/).forEach(function(para){
+          if (!para.trim()) return;
+          const p = document.createElement("p");
+          p.textContent = para.trim();
+          log.appendChild(p);
+        });
+      } else {
+        const div = document.createElement("div");
+        div.className = "choice-echo";
+        div.textContent = "→ " + entry.text;
+        log.appendChild(div);
+      }
+    });
+    showScreen(endingScreen);
+  }
+
+  // ---------- Wire up events ----------
+  let authMode = "login";
+  function setAuthMode(mode){
+    authMode = mode;
+    el("tab-login").classList.toggle("active", mode === "login");
+    el("tab-signup").classList.toggle("active", mode === "signup");
+    el("auth-submit").textContent = mode === "login" ? "Log In" : "Create Account";
+    el("auth-password").setAttribute("autocomplete", mode === "login" ? "current-password" : "new-password");
+    clearError();
+  }
+  el("tab-login").addEventListener("click", function(){ setAuthMode("login"); });
+  el("tab-signup").addEventListener("click", function(){ setAuthMode("signup"); });
+
+  el("auth-submit").addEventListener("click", async function(){
+    clearError();
+    const username = el("auth-username").value.trim();
+    const password = el("auth-password").value;
+    if (!validUsername(username)){
+      showError("Usernames must be 3-20 characters: letters, numbers, underscores, or hyphens only.");
+      return;
+    }
+    if (password.length < 6){
+      showError("Password must be at least 6 characters.");
+      return;
+    }
+    const btn = el("auth-submit");
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = authMode === "login" ? "Logging in..." : "Creating account...";
+    try{
+      const s = authMode === "login" ? await signIn(username, password) : await signUp(username, password);
+      saveSession(s);
+      el("auth-username").value = "";
+      el("auth-password").value = "";
+      await showDashboard();
+    } catch(e){
+      showError((e && e.message) || "Something went wrong.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  });
+
+  el("logout-btn-dash").addEventListener("click", logout);
+  el("dash-new-btn").addEventListener("click", function(){ showScreen(setupScreen); });
+  el("save-exit-btn").addEventListener("click", showDashboard);
+  el("back-to-dashboard-btn").addEventListener("click", showDashboard);
+  el("download-btn").addEventListener("click", downloadStory);
+  el("custom-action-btn").addEventListener("click", handleCustomAction);
+  el("custom-action-input").addEventListener("keydown", function(e){
+    if (e.key === "Enter") handleCustomAction();
+  });
+
+  el("begin-btn").addEventListener("click", async function(){
+    clearError();
+    const name = el("char-name").value.trim();
+    const desc = el("char-desc").value.trim();
+    const fear = el("char-fear").value.trim();
+    const world = el("world-desc").value.trim();
+    const creatures = el("char-creatures").value.trim();
+    const subgenre = el("subgenre").value;
+    const intensity = el("intensity").value;
+    const model = el("model").value;
+    const extra = el("extra-notes").value.trim();
+
+    if (!name && !desc && !world){
+      showError("Give your character or world at least a little detail — a name, a description, or a setting.");
+      return;
+    }
+
+    const cfg = { name: name, desc: desc, fear: fear, world: world, creatures: creatures, subgenre: subgenre, intensity: intensity, model: model, extra: extra };
+
+    const btn = el("begin-btn");
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Opening the door...";
+    try{
+      const save = await createSave(cfg);
+      cfgCache = cfg;
+      currentSaveId = save.id;
+      state = { turn: 0, messages: [], transcript: [], model: model };
+      storyLog.innerHTML = "";
+      choicesEl.innerHTML = "";
+      el("custom-action-input").value = "";
+      turnTag.textContent = "Chapter 1";
+      showScreen(storyScreen);
+      runTurn("Begin the story. Set the scene, introduce the atmosphere and the first unsettling detail, and end with the first three choices.");
+    } catch(e){
+      showError((e && e.message) || "Could not start a new story.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  });
+
+  // ---------- Boot ----------
+  (async function init(){
+    if (!CONFIGURED){
+      showScreen(configNoticeScreen);
+      return;
+    }
+    loadSession();
+    if (session){
+      const ok = await ensureFreshSession();
+      if (ok){ await showDashboard(); return; }
+      clearSession();
+    }
+    showScreen(authScreen);
+  })();
+
+})();
+</script>
+</body>
+</html>
