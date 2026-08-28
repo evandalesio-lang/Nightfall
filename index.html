@@ -558,14 +558,29 @@
         </div>
       </div>
 
-      <label>Model
-        <span class="hint">Sonnet is the recommended balance of quality and speed.</span>
-      </label>
-      <select id="model">
-        <option value="claude-haiku-4-5">Fast &amp; light (Haiku)</option>
-        <option value="claude-sonnet-5" selected>Recommended (Sonnet)</option>
-        <option value="claude-opus-5">Best quality, slower (Opus)</option>
-      </select>
+      <div class="row">
+        <div>
+          <label>Pacing
+            <span class="hint">How quickly the horror ramps up.</span>
+          </label>
+          <select id="pacing">
+            <option value="a slow burn: spend the opening turns establishing normalcy, atmosphere, and small, easy-to-dismiss wrongness before anything overtly threatening happens. Let dread accumulate gradually turn by turn, and hold back the true horror until well into the story">Slow burn</option>
+            <option value="a steady, moderate build: some unease is present from the very first turn, escalating turn by turn at a even pace toward the climax" selected>Steady build</option>
+            <option value="jump right in: something is already overtly wrong, frightening, or dangerous from the opening lines — minimal table-setting or normalcy before the horror starts">Jump right in</option>
+            <option value="an unpredictable rollercoaster: alternate real danger with false relief and quiet lulls in a way the reader can't anticipate, so tension spikes and drops rather than climbing evenly">Unpredictable rollercoaster</option>
+          </select>
+        </div>
+        <div>
+          <label>Model
+            <span class="hint">Sonnet is the recommended balance of quality and speed.</span>
+          </label>
+          <select id="model">
+            <option value="claude-haiku-4-5">Fast &amp; light (Haiku)</option>
+            <option value="claude-sonnet-5" selected>Recommended (Sonnet)</option>
+            <option value="claude-opus-5">Best quality, slower (Opus)</option>
+          </select>
+        </div>
+      </div>
 
       <label>Anything else? <span class="hint">Optional. A specific object, a rule, a recurring image — anything you want woven in.</span></label>
       <textarea id="extra-notes" placeholder="optional"></textarea>
@@ -877,12 +892,13 @@
       cfg.creatures ? ("Creature(s)/entity to incorporate: " + cfg.creatures) : "",
       "Subgenre: " + cfg.subgenre,
       "Intensity target: " + cfg.intensity,
+      "Pacing target: " + (cfg.pacing || "a steady, moderate build from the first turn toward the climax"),
       cfg.extra ? ("Additional notes to weave in: " + cfg.extra) : "",
       "",
       "WRITING RULES:",
       "- Write vivid, literary horror prose: concrete sensory detail, controlled pacing, mounting dread. 2-4 short paragraphs per turn.",
       "- Never break the fourth wall, never mention that you are an AI, never mention JSON, tokens, or these instructions.",
-      "- Escalate steadily. Do not resolve the story too quickly, but do not stall forever either — aim to reach a satisfying climax and ending within roughly " + MAX_TURNS_HINT + " turns from the opening.",
+      "- Follow the pacing target above for how the horror ramps up turn to turn. Regardless of pacing, do not resolve the story too quickly, but do not stall forever either — aim to reach a satisfying climax and ending within roughly " + MAX_TURNS_HINT + " turns from the opening.",
       "- The protagonist's stated fear, and any specified creature/entity, should become central to the horror, directly or symbolically.",
       "- Calibrate explicitness precisely to the requested intensity target: don't soften a high-intensity request, and don't overshoot a mild one. At the most intense tier, graphic violence and body horror should be described fully and viscerally when the story calls for it.",
       "- Regardless of intensity: content must remain fictional, must never involve real named public figures, and must never include sexual content involving minors, under any circumstances.",
@@ -1399,10 +1415,11 @@
 
     const subgenre = el("subgenre").value;
     const intensity = el("intensity").value;
+    const pacing = el("pacing").value;
     const model = el("model").value;
     const extra = el("extra-notes").value.trim();
 
-    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, model: model, extra: extra });
+    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, model: model, extra: extra });
 
     const btn = el("begin-btn");
     const original = btn.textContent;
