@@ -176,6 +176,9 @@
   .history-row{ display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 10px; }
   .history-row:last-child{ border-bottom:none; }
   .history-row span{ font-size: 0.92rem; }
+  .history-row-actions{ display:flex; gap:8px; flex-shrink:0; }
+  .btn-danger{ color: #d98a8a; }
+  .btn-danger:hover:not(:disabled){ border-color: var(--accent-bright); color: #f2c9c9; }
 
   #story-log p{
     margin: 0 0 16px;
@@ -244,6 +247,7 @@
   }
   .controls-row{ display:flex; gap:10px; justify-content:center; margin-top: 26px; flex-wrap: wrap; }
   .top-controls{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; }
+  .btn-group{ display:flex; gap:8px; }
   .turn-tag{ color: var(--ink-dim); font-size: 0.8rem; letter-spacing: 1px; }
   a, a:visited{ color: var(--accent-bright); }
   ::selection{ background: var(--accent); color: #fff; }
@@ -312,6 +316,10 @@
 
   <!-- SETUP SCREEN -->
   <section class="screen" id="setup-screen">
+    <div class="top-bar">
+      <button class="btn-secondary" id="setup-back-btn">&larr; My Stories</button>
+      <button class="btn-secondary" id="logout-btn-setup">Log out</button>
+    </div>
     <div class="panel">
       <div class="mode-tabs">
         <button type="button" id="tab-freeform" class="active">Write it yourself</button>
@@ -593,7 +601,10 @@
   <section class="screen" id="story-screen">
     <div class="top-controls">
       <span class="turn-tag" id="turn-tag">Chapter 1</span>
-      <button class="btn-secondary" id="save-exit-btn">Save &amp; exit</button>
+      <div class="btn-group">
+        <button class="btn-secondary" id="save-exit-btn">Save &amp; exit</button>
+        <button class="btn-secondary" id="logout-btn-story">Log out</button>
+      </div>
     </div>
     <div class="panel">
       <div id="story-log"></div>
@@ -617,11 +628,12 @@
       <div class="controls-row">
         <button id="download-btn">Download this story</button>
         <button class="btn-secondary" id="back-to-dashboard-btn">Back to your stories</button>
+        <button class="btn-secondary" id="logout-btn-ending">Log out</button>
       </div>
     </div>
   </section>
 
-  <footer class="app-footer">Made by Evan Dalesio using Claude Code · V 0.1</footer>
+  <footer class="app-footer">V.2</footer>
 </div>
 
 <script>
@@ -864,8 +876,10 @@
     return resp.ok;
   }
   async function deleteSave(id){
-    try{ await authedFetch(REST_URL + "/saves?id=eq." + encodeURIComponent(id), { method: "DELETE" }); }
-    catch(e){ /* best-effort */ }
+    try{
+      const resp = await authedFetch(REST_URL + "/saves?id=eq." + encodeURIComponent(id), { method: "DELETE" });
+      return resp.ok;
+    } catch(e){ return false; }
   }
 
   function syncSave(ended){
@@ -1169,12 +1183,46 @@
         const span = document.createElement("span");
         const date = new Date(save.updated_at).toLocaleDateString();
         span.textContent = (save.title || "Untitled") + " — " + save.turn + " chapters, finished " + date;
+
+        const actions = document.createElement("div");
+        actions.className = "history-row-actions";
+
         const viewBtn = document.createElement("button");
         viewBtn.className = "btn-secondary";
         viewBtn.textContent = "View";
         viewBtn.addEventListener("click", function(){ viewCompletedSave(save.id); });
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "btn-secondary btn-danger";
+        deleteBtn.textContent = "Delete";
+        deleteBtn.addEventListener("click", async function(){
+          if (!confirm("Permanently delete \"" + (save.title || "Untitled") + "\"? This can't be undone.")) return;
+          viewBtn.disabled = true;
+          deleteBtn.disabled = true;
+          deleteBtn.textContent = "Deleting...";
+          try{
+            const ok = await deleteSave(save.id);
+            if (!ok) throw new Error("Delete failed");
+            row.remove();
+            if (!list.children.length){
+              const p = document.createElement("p");
+              p.className = "hint";
+              p.style.marginTop = "0";
+              p.textContent = "No finished stories yet.";
+              list.appendChild(p);
+            }
+          } catch(e){
+            showError("Could not delete that story. Try again.");
+            viewBtn.disabled = false;
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = "Delete";
+          }
+        });
+
+        actions.appendChild(viewBtn);
+        actions.appendChild(deleteBtn);
         row.appendChild(span);
-        row.appendChild(viewBtn);
+        row.appendChild(actions);
         list.appendChild(row);
       });
     }
@@ -1399,10 +1447,22 @@
   });
 
   el("logout-btn-dash").addEventListener("click", logout);
+  el("logout-btn-setup").addEventListener("click", logout);
+  el("logout-btn-story").addEventListener("click", logout);
+  el("logout-btn-ending").addEventListener("click", logout);
   el("dash-new-btn").addEventListener("click", function(){ setSetupMode("freeform"); showScreen(setupScreen); });
   el("save-exit-btn").addEventListener("click", showDashboard);
   el("back-to-dashboard-btn").addEventListener("click", showDashboard);
   el("download-btn").addEventListener("click", downloadStory);
+
+  function setupHasUnsavedInput(){
+    if (setupMode === "guided") return !!el("g-name").value.trim();
+    return !!(el("char-name").value.trim() || el("char-desc").value.trim() || el("char-fear").value.trim() || el("world-desc").value.trim() || el("char-creatures").value.trim());
+  }
+  el("setup-back-btn").addEventListener("click", function(){
+    if (setupHasUnsavedInput() && !confirm("Leave without starting this story? Anything you've entered will be lost.")) return;
+    showDashboard();
+  });
   el("custom-action-btn").addEventListener("click", handleCustomAction);
   el("custom-action-input").addEventListener("keydown", function(e){
     if (e.key === "Enter") handleCustomAction();
