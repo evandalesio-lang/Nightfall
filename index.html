@@ -217,6 +217,70 @@
   #story-log .beat-divider{
     text-align:center; color: var(--accent); letter-spacing: 4px; margin: 26px 0; font-size: 0.85rem; opacity:0.7;
   }
+
+  /* ---- Chapters ---- */
+  .chapter-heading{ margin: 36px 0 20px; text-align:center; }
+  #story-log > .chapter-heading:first-child, #ending-log > .chapter-heading:first-child{ margin-top: 4px; }
+  .chapter-heading .ch-num{
+    display:block; color: var(--accent); font-size: 0.72rem;
+    letter-spacing: 3px; text-transform: uppercase; margin-bottom: 7px;
+  }
+  .chapter-heading .ch-title{
+    display:block; font-family:'IM Fell English SC', serif;
+    font-size: 1.28rem; color: var(--ink); line-height: 1.3;
+  }
+  .chapter-heading .ch-rule{ display:block; width: 56px; margin: 12px auto 0; border-top: 1px solid var(--border); }
+  .book-btn{
+    background: transparent; border: 1px solid var(--border); color: var(--ink);
+    font-size: 1rem; line-height: 1; padding: 6px 10px; border-radius: 4px; cursor: pointer;
+  }
+  .book-btn:hover{ border-color: var(--accent-bright); }
+  .story-tag-group{ display:flex; align-items:center; gap: 10px; }
+
+  #chapter-overlay{
+    display:none; position: fixed; inset: 0; z-index: 50;
+    background: rgba(6,4,4,0.8); padding: 24px 14px; overflow-y: auto;
+  }
+  #chapter-overlay.active{ display:block; }
+  .chapter-sheet{
+    max-width: 560px; margin: 0 auto; background: var(--bg-panel);
+    border: 1px solid var(--border); border-radius: 6px; padding: 18px 16px 20px;
+  }
+  .chapter-sheet-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; }
+  .chapter-sheet-head h3{
+    margin: 0; font-family:'IM Fell English SC', serif; font-size: 1.15rem;
+    color: var(--accent-bright); font-weight: normal; letter-spacing: 1px;
+  }
+  .chapter-sheet-hint{ color: var(--ink-dim); font-size: 0.76rem; font-style: italic; margin-bottom: 8px; }
+  .chapter-row{ display:flex; align-items:stretch; gap: 8px; border-bottom: 1px solid var(--border); }
+  .chapter-row:last-child{ border-bottom:none; }
+  .chapter-row .ch-open{
+    flex:1; text-align:left; background: transparent; border:none; color: var(--ink);
+    padding: 12px 4px; cursor: pointer; font-size: 0.95rem; font-family: inherit;
+  }
+  .chapter-row .ch-open:hover{ color: var(--accent-bright); }
+  .chapter-row .ch-open .ch-open-num{
+    display:block; color: var(--ink-dim); font-size: 0.7rem;
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 3px;
+  }
+  .chapter-row.current .ch-open{ color: var(--accent-bright); }
+  .chapter-row .ch-edit{
+    background: transparent; border:none; color: var(--ink-dim);
+    padding: 0 10px; cursor: pointer; font-size: 0.95rem;
+  }
+  .chapter-row .ch-edit:hover{ color: var(--ink); }
+  .chapter-empty{ color: var(--ink-dim); font-style: italic; font-size: 0.9rem; padding: 10px 0; }
+
+  .chapter-nav{
+    display:flex; gap: 8px; flex-wrap: wrap; justify-content:center;
+    margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--border);
+  }
+  .chapter-nav .ch-step{ flex: 1 1 40%; }
+  .chapter-nav .ch-back{ flex: 1 1 100%; }
+  .reading-banner{
+    text-align:center; color: var(--ink-dim); font-size: 0.75rem;
+    font-style: italic; letter-spacing: 1px; margin-bottom: 2px;
+  }
   #story-log .choice-echo, #ending-log .choice-echo{
     color: var(--ink-dim);
     font-style: italic;
@@ -630,7 +694,7 @@
         </div>
         <div>
           <label>Story length
-            <span class="hint">Roughly how many turns before an ending.</span>
+            <span class="hint">Roughly how many chapters before an ending.</span>
           </label>
           <select id="story-length">
             <option value="a short story: wrap up within roughly 4 to 5 turns total from the opening. Keep it tight — a single contained escalation building straight to a swift resolution, no subplots or padding">Short</option>
@@ -638,6 +702,20 @@
             <option value="a long story: take your time, aiming for roughly 14 to 17 turns before the climax and ending, with room for subplots, false leads, and a slower unraveling">Long</option>
             <option value="an epic, sprawling story: spread across roughly 20 to 25 turns, with multiple escalating phases, setbacks, and a large final climax">Epic</option>
             <option value="a never-ending story: do not aim for an ending at all. Keep escalating, complicating, and introducing new turns of dread indefinitely, and never set &quot;ending&quot; to true on your own initiative. The only exception: if the reader's chosen action or custom text clearly and deliberately signals that they want to bring the story to a close (explicitly trying to end things for good, escape permanently, or resolve the situation once and for all), honor that and write a proper, satisfying ending at that point">Never-ending</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Chapter length
+            <span class="hint">How much prose you get in each single chapter.</span>
+          </label>
+          <select id="chapter-length">
+            <option value="a brief chapter of roughly 2 to 3 tight paragraphs — quick, punchy beats that move fast">Brief</option>
+            <option value="a standard chapter of roughly 4 to 6 substantial paragraphs — enough room to build a scene properly before the choice" selected>Standard</option>
+            <option value="a long chapter of roughly 8 to 10 substantial paragraphs. Take real time inside the scene: let the character move through the space, notice things, react, and dwell. Do not rush toward the choice">Long</option>
+            <option value="a deeply immersive chapter of roughly 12 to 15 substantial paragraphs, written like a full chapter of a horror novel. Develop the scene at length with interiority, sensory texture, dialogue where it fits, and a genuine sense of time passing before the choice arrives">Immersive</option>
           </select>
         </div>
       </div>
@@ -652,7 +730,10 @@
   <!-- STORY SCREEN -->
   <section class="screen" id="story-screen">
     <div class="top-controls">
-      <span class="turn-tag" id="turn-tag">Chapter 1</span>
+      <div class="story-tag-group">
+        <button class="book-btn" id="book-btn-story" title="Chapters" aria-label="Chapters">&#128214;</button>
+        <span class="turn-tag" id="turn-tag">Chapter 1</span>
+      </div>
       <div class="btn-group">
         <button class="btn-secondary" id="save-exit-btn">Save &amp; exit</button>
         <button class="btn-secondary" id="logout-btn-story">Log out</button>
@@ -675,6 +756,10 @@
   <!-- ENDING SCREEN -->
   <section class="screen" id="ending-screen">
     <div class="panel">
+      <div class="top-controls">
+        <button class="book-btn" id="book-btn-ending" title="Chapters" aria-label="Chapters">&#128214;</button>
+        <span class="turn-tag" id="ending-tag"></span>
+      </div>
       <div class="ending-title">THE END</div>
       <div id="ending-log"></div>
       <div class="controls-row">
@@ -684,6 +769,17 @@
       </div>
     </div>
   </section>
+
+  <div id="chapter-overlay">
+    <div class="chapter-sheet">
+      <div class="chapter-sheet-head">
+        <h3>Chapters</h3>
+        <button class="btn-secondary" id="chapter-close-btn">Close</button>
+      </div>
+      <div class="chapter-sheet-hint">Tap a chapter to read it on its own. Tap &#9998; to rename it.</div>
+      <div id="chapter-list"></div>
+    </div>
+  </div>
 
   <footer class="app-footer">V.2</footer>
 </div>
@@ -740,6 +836,9 @@
   const loadingEl = el("loading");
   const errorBanner = el("error-banner");
   const turnTag = el("turn-tag");
+  const endingLog = el("ending-log");
+  const chapterOverlay = el("chapter-overlay");
+  const chapterListEl = el("chapter-list");
 
   let session = null;      // { access_token, refresh_token, expires_at, user:{id, username} }
   let cfgCache = null;     // current story's character/world config
@@ -747,7 +846,7 @@
   let state = {
     turn: 0,
     messages: [],      // Anthropic-style message history
-    transcript: [],    // [{ type:'narration'|'choice', text }]
+    transcript: [],    // [{ type:'narration', text, title } | { type:'choice', text }]
     model: DEFAULT_MODEL
   };
 
@@ -966,11 +1065,13 @@
       "Subgenre: " + cfg.subgenre,
       "Intensity target: " + cfg.intensity,
       "Pacing target: " + (cfg.pacing || "a steady, moderate build from the first turn toward the climax"),
+      "Chapter length target: " + (cfg.chapterLength || "a standard chapter of roughly 4 to 6 substantial paragraphs"),
       "Length target: " + (cfg.length || ("a standard-length story: aim for a satisfying climax and ending within roughly " + MAX_TURNS_HINT + " turns from the opening")),
       cfg.extra ? ("Additional notes to weave in: " + cfg.extra) : "",
       "",
       "WRITING RULES:",
-      "- Write vivid, literary horror prose: concrete sensory detail, controlled pacing, mounting dread. 2-4 short paragraphs per turn.",
+      "- Write vivid, literary horror prose: concrete sensory detail, controlled pacing, mounting dread.",
+      "- Match the chapter length target above for how much prose each turn contains. Treat it as a real target to hit, not a ceiling to stay under: the reader sees one chapter at a time on screen, so each one should feel like a chapter of a novel rather than a summary of one. Do not pad with repetition to reach the length — earn it with detail, interiority, and time spent inside the scene.",
       "- Never break the fourth wall, never mention that you are an AI, never mention JSON, tokens, or these instructions.",
       "- Follow the pacing target above for how the horror ramps up turn to turn, and the length target above for overall story duration. Do not resolve significantly earlier than the length target calls for, and do not run significantly longer than it either — except a never-ending length target overrides this entirely; see that target's own instructions.",
       "- The protagonist's stated fear, and any specified creature/entity, should become central to the horror, directly or symbolically.",
@@ -978,11 +1079,12 @@
       "- Regardless of intensity: content must remain fictional, must never involve real named public figures, and must never include sexual content involving minors, under any circumstances.",
       "- When you decide the story has reached its ending (climax and resolution, whether triumphant, tragic, or ambiguous), write that final beat fully — do not cut it short — and set \"ending\" to true with an empty choices array.",
       "- Until the ending, always offer exactly 3 distinct, meaningfully different choices for what the protagonist does next. Choices should be short (under 12 words), written as actions (e.g. \"Follow the sound into the cellar\").",
+      "- Every beat is a chapter of the book, so give each one a \"title\": a short, evocative chapter heading of roughly two to six words, in the voice of a horror novel's table of contents. It should catch the mood or a central image of that beat without giving away how it ends, and must never repeat a title already used earlier in this story.",
       "- The reader may sometimes act outside of your suggested choices, writing in their own action instead. Treat whatever they write as a valid, natural continuation — adapt the world and consequences to it seamlessly, in keeping with the story bible above, rather than steering them back toward the options you offered.",
       "",
       "OUTPUT FORMAT — critical:",
       "Respond with ONLY a single valid JSON object, no markdown fences, no commentary before or after. Shape exactly:",
-      "{\"narration\": \"...\", \"choices\": [\"...\", \"...\", \"...\"], \"ending\": false}",
+      "{\"narration\": \"...\", \"title\": \"...\", \"choices\": [\"...\", \"...\", \"...\"], \"ending\": false}",
       "If ending the story: choices must be [] and ending must be true."
     ].filter(Boolean).join("\n");
   }
@@ -1029,36 +1131,243 @@
     if (!parsed && retryOnBadJson){
       const retryMessages = messages.concat([
         { role: "assistant", content: rawText },
-        { role: "user", content: "That was not valid JSON in the required format. Respond again with ONLY the JSON object: {\"narration\": string, \"choices\": string[], \"ending\": boolean}. No other text." }
+        { role: "user", content: "That was not valid JSON in the required format. Respond again with ONLY the JSON object: {\"narration\": string, \"title\": string, \"choices\": string[], \"ending\": boolean}. No other text." }
       ]);
       return callStoryTurn(systemPrompt, retryMessages, model, { retryOnBadJson: false });
     }
     if (!parsed){
-      parsed = { narration: rawText || "The darkness swallows the next moment. (The story's response could not be read as expected.)", choices: [], ending: true };
+      // Previously this ended the story outright, which silently marked a save "completed"
+      // when the model's reply was merely cut off. Now it surfaces as a retryable error.
+      throw new Error("That chapter came back incomplete. This usually means it ran longer than the server allows \u2014 try again, or pick a shorter chapter length next story.");
     }
     return parsed;
   }
 
   // ---------- Story log rendering ----------
-  function appendNarration(text, turnLabel){
-    if (turnLabel){
-      const div = document.createElement("div");
-      div.className = "beat-divider";
-      div.textContent = "◆ ◆ ◆";
-      storyLog.appendChild(div);
-    }
-    text.split(/\n{2,}/).forEach(function(para){
-      if (!para.trim()) return;
-      const p = document.createElement("p");
-      p.textContent = para.trim();
-      storyLog.appendChild(p);
+  const ROMAN = ["","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV",
+                 "XVI","XVII","XVIII","XIX","XX","XXI","XXII","XXIII","XXIV","XXV"];
+  function chapterNumeral(n){ return ROMAN[n] || String(n); }
+
+  // A chapter is one narration beat. The choice entry just before it is what led the reader here.
+  function getChapters(transcript){
+    const out = [];
+    let leadIn = null;
+    (transcript || []).forEach(function(entry, i){
+      if (!entry) return;
+      if (entry.type === "choice"){ leadIn = entry.text; return; }
+      out.push({
+        tIndex: i,
+        n: out.length + 1,
+        title: String(entry.title || "").trim(),
+        leadIn: leadIn,
+        text: entry.text || ""
+      });
+      leadIn = null;
     });
+    return out;
   }
-  function appendChoiceEcho(text){
+
+  function chapterHeadingEl(ch){
+    const wrap = document.createElement("div");
+    wrap.className = "chapter-heading";
+    const num = document.createElement("span");
+    num.className = "ch-num";
+    num.textContent = "Chapter " + chapterNumeral(ch.n);
+    wrap.appendChild(num);
+    const t = String(ch.title || "").trim();
+    if (t){
+      const title = document.createElement("span");
+      title.className = "ch-title";
+      title.textContent = t;
+      wrap.appendChild(title);
+    }
+    const rule = document.createElement("span");
+    rule.className = "ch-rule";
+    wrap.appendChild(rule);
+    return wrap;
+  }
+  function choiceEchoEl(text){
     const div = document.createElement("div");
     div.className = "choice-echo";
     div.textContent = "→ " + text;
-    storyLog.appendChild(div);
+    return div;
+  }
+  function paragraphsInto(container, text){
+    String(text || "").split(/\n{2,}/).forEach(function(para){
+      if (!para.trim()) return;
+      const p = document.createElement("p");
+      p.textContent = para.trim();
+      container.appendChild(p);
+    });
+  }
+
+  // onlyN = render just that chapter; null/0 = the whole story.
+  function renderTranscript(container, transcript, onlyN){
+    container.innerHTML = "";
+    const chapters = getChapters(transcript);
+    chapters.forEach(function(ch){
+      if (onlyN && ch.n !== onlyN) return;
+      if (ch.leadIn) container.appendChild(choiceEchoEl(ch.leadIn));
+      container.appendChild(chapterHeadingEl(ch));
+      paragraphsInto(container, ch.text);
+    });
+    return chapters.length;
+  }
+
+  function appendNarration(text, title, n){
+    storyLog.appendChild(chapterHeadingEl({ n: n, title: title }));
+    paragraphsInto(storyLog, text);
+  }
+  function appendChoiceEcho(text){
+    storyLog.appendChild(choiceEchoEl(text));
+  }
+
+  // ---------- Chapter menu & single-chapter reading ----------
+  let chapterCtx = "story";    // which screen's log the menu is driving
+  let readingChapter = null;   // chapter number being read alone, or null for the full story
+
+  function activeLog(){ return chapterCtx === "ending" ? endingLog : storyLog; }
+
+  function updateEndingTag(){
+    const tag = el("ending-tag");
+    if (!tag) return;
+    const total = getChapters(state.transcript).length;
+    tag.textContent = total ? (total + (total === 1 ? " chapter" : " chapters")) : "";
+  }
+
+  function openChapterMenu(ctx){
+    chapterCtx = ctx;
+    renderChapterList();
+    chapterOverlay.classList.add("active");
+  }
+  function closeChapterMenu(){ chapterOverlay.classList.remove("active"); }
+
+  function renderChapterList(){
+    chapterListEl.innerHTML = "";
+    const chapters = getChapters(state.transcript);
+    if (!chapters.length){
+      const empty = document.createElement("div");
+      empty.className = "chapter-empty";
+      empty.textContent = "No chapters yet \u2014 the story hasn't begun.";
+      chapterListEl.appendChild(empty);
+      return;
+    }
+    chapters.forEach(function(ch){
+      const row = document.createElement("div");
+      row.className = "chapter-row" + (readingChapter === ch.n ? " current" : "");
+
+      const open = document.createElement("button");
+      open.className = "ch-open";
+      const num = document.createElement("span");
+      num.className = "ch-open-num";
+      num.textContent = "Chapter " + chapterNumeral(ch.n);
+      const label = document.createElement("span");
+      label.textContent = ch.title || "Untitled";
+      open.appendChild(num);
+      open.appendChild(label);
+      open.addEventListener("click", function(){ showChapter(ch.n); });
+
+      const edit = document.createElement("button");
+      edit.className = "ch-edit";
+      edit.title = "Rename this chapter";
+      edit.setAttribute("aria-label", "Rename chapter " + ch.n);
+      edit.textContent = "\u270e";
+      edit.addEventListener("click", function(){ renameChapter(ch.n); });
+
+      row.appendChild(open);
+      row.appendChild(edit);
+      chapterListEl.appendChild(row);
+    });
+  }
+
+  function persistTranscript(){
+    if (!currentSaveId) return;
+    const warn = function(){ showError("That name was changed here, but couldn't be saved to your account."); };
+    updateSave(currentSaveId, { transcript: state.transcript })
+      .then(function(ok){ if (!ok) warn(); })
+      .catch(warn);
+  }
+
+  function renameChapter(n){
+    const chapters = getChapters(state.transcript);
+    const ch = chapters[n - 1];
+    if (!ch) return;
+    const next = prompt("Name Chapter " + chapterNumeral(ch.n) + " (leave blank to clear the name):", ch.title || "");
+    if (next === null) return;
+    state.transcript[ch.tIndex].title = String(next).trim().slice(0, 70);
+    persistTranscript();
+    renderChapterList();
+    if (readingChapter) showChapter(readingChapter, true);
+    else renderTranscript(activeLog(), state.transcript, null);
+  }
+
+  function showChapter(n, keepMenuOpen){
+    const chapters = getChapters(state.transcript);
+    if (!chapters.length) return;
+    n = Math.min(Math.max(1, n), chapters.length);
+    readingChapter = n;
+
+    const onStory = (chapterCtx === "story");
+    const isLatest = (n === chapters.length);
+    const log = activeLog();
+    renderTranscript(log, state.transcript, n);
+
+    // On the story screen the newest chapter is simply "where you are", so it needs no
+    // banner and no nav — the choices sit right below it. Older chapters get both.
+    const showNav = !onStory || !isLatest;
+
+    if (showNav){
+      const banner = document.createElement("div");
+      banner.className = "reading-banner";
+      banner.textContent = "Reading Chapter " + chapterNumeral(n) + " of " + chapters.length;
+      log.insertBefore(banner, log.firstChild);
+
+      const nav = document.createElement("div");
+      nav.className = "chapter-nav";
+      const prev = document.createElement("button");
+      prev.className = "btn-secondary ch-step";
+      prev.textContent = "\u2190 Previous";
+      prev.disabled = n <= 1;
+      prev.addEventListener("click", function(){ showChapter(n - 1); });
+      const nxt = document.createElement("button");
+      nxt.className = "btn-secondary ch-step";
+      nxt.textContent = "Next \u2192";
+      nxt.disabled = n >= chapters.length;
+      nxt.addEventListener("click", function(){ showChapter(n + 1); });
+      const back = document.createElement("button");
+      back.className = "ch-back";
+      back.textContent = onStory ? "Back to where you left off" : "Read the whole story";
+      back.addEventListener("click", function(){ exitReading(); });
+      nav.appendChild(prev);
+      nav.appendChild(nxt);
+      nav.appendChild(back);
+      log.appendChild(nav);
+    }
+
+    if (onStory){
+      choicesWrapperEl.style.display = isLatest ? "block" : "none";
+      turnTag.textContent = isLatest
+        ? ("Chapter " + n)
+        : ("Reading " + chapterNumeral(n) + " of " + chapters.length);
+    }
+    if (!keepMenuOpen) closeChapterMenu();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function goToLatestChapter(){
+    const total = getChapters(state.transcript).length;
+    if (total) showChapter(total);
+  }
+
+  function exitReading(){
+    if (chapterCtx === "story"){
+      goToLatestChapter();
+      closeChapterMenu();
+      return;
+    }
+    readingChapter = null;
+    renderTranscript(activeLog(), state.transcript, null);
+    closeChapterMenu();
   }
   function renderChoices(choices){
     choicesEl.innerHTML = "";
@@ -1088,8 +1397,10 @@
       state.turn += 1;
       turnTag.textContent = "Chapter " + state.turn;
 
-      appendNarration(result.narration, state.turn > 1);
-      state.transcript.push({ type: "narration", text: result.narration });
+      const chapterTitle = String(result.title || "").trim().slice(0, 70);
+      state.transcript.push({ type: "narration", text: result.narration, title: chapterTitle });
+      // Only the newest chapter stays on screen; earlier ones are reached via the book menu.
+      showChapter(getChapters(state.transcript).length);
 
       const isEnding = !!result.ending || !result.choices || result.choices.length === 0;
       syncSave(isEnding);
@@ -1102,6 +1413,8 @@
     } catch(err){
       showError((err && err.message) || "Something went wrong.");
       state.messages.pop();
+      const lastEntry = state.transcript[state.transcript.length - 1];
+      if (lastEntry && lastEntry.type === "choice") state.transcript.pop();
       if (err && err.message && err.message.toLowerCase().indexOf("session expired") !== -1){
         clearSession();
         showScreen(authScreen);
@@ -1131,7 +1444,10 @@
 
   function finishStory(){
     choicesEl.innerHTML = "";
-    el("ending-log").innerHTML = storyLog.innerHTML;
+    readingChapter = null;
+    chapterCtx = "ending";
+    renderTranscript(endingLog, state.transcript, null);
+    updateEndingTag();
     showScreen(endingScreen);
   }
 
@@ -1149,11 +1465,16 @@
     lines.push("");
     lines.push("-".repeat(40));
     lines.push("");
+    let chapterNo = 0;
     state.transcript.forEach(function(entry){
       if (entry.type === "choice"){
         lines.push("> " + entry.text);
         lines.push("");
       } else {
+        chapterNo += 1;
+        const t = String(entry.title || "").trim();
+        lines.push("CHAPTER " + chapterNumeral(chapterNo) + (t ? " \u2014 " + t : ""));
+        lines.push("");
         lines.push(entry.text);
         lines.push("");
       }
@@ -1305,6 +1626,9 @@
     storyLog.innerHTML = "";
     choicesEl.innerHTML = "";
     el("custom-action-input").value = "";
+    readingChapter = null;
+    chapterCtx = "story";
+    choicesWrapperEl.style.display = "block";
     showScreen(storyScreen);
     turnTag.textContent = "Chapter " + Math.max(state.turn, 1);
 
@@ -1313,15 +1637,7 @@
       return;
     }
 
-    let afterFirst = false;
-    state.transcript.forEach(function(entry){
-      if (entry.type === "narration"){
-        appendNarration(entry.text, afterFirst);
-        afterFirst = true;
-      } else {
-        appendChoiceEcho(entry.text);
-      }
-    });
+    goToLatestChapter();
 
     const lastAssistant = state.messages.slice().reverse().find(function(m){ return m.role === "assistant"; });
     const parsed = lastAssistant ? extractJson(typeof lastAssistant.content === "string" ? lastAssistant.content : "") : null;
@@ -1337,24 +1653,12 @@
     const save = await fetchSaveById(id);
     if (!save){ showError("Could not load that story."); return; }
     cfgCache = save.cfg || {};
+    currentSaveId = save.id;
     state.transcript = save.transcript || [];
-    const log = el("ending-log");
-    log.innerHTML = "";
-    (save.transcript || []).forEach(function(entry){
-      if (entry.type === "narration"){
-        entry.text.split(/\n{2,}/).forEach(function(para){
-          if (!para.trim()) return;
-          const p = document.createElement("p");
-          p.textContent = para.trim();
-          log.appendChild(p);
-        });
-      } else {
-        const div = document.createElement("div");
-        div.className = "choice-echo";
-        div.textContent = "→ " + entry.text;
-        log.appendChild(div);
-      }
-    });
+    readingChapter = null;
+    chapterCtx = "ending";
+    renderTranscript(endingLog, state.transcript, null);
+    updateEndingTag();
     showScreen(endingScreen);
   }
 
@@ -1675,6 +1979,13 @@
   el("logout-btn-story").addEventListener("click", logout);
   el("logout-btn-ending").addEventListener("click", logout);
   el("dash-new-btn").addEventListener("click", function(){ setSetupMode("freeform"); showScreen(setupScreen); });
+  el("book-btn-story").addEventListener("click", function(){ openChapterMenu("story"); });
+  el("book-btn-ending").addEventListener("click", function(){ openChapterMenu("ending"); });
+  el("chapter-close-btn").addEventListener("click", closeChapterMenu);
+  chapterOverlay.addEventListener("click", function(e){ if (e.target === chapterOverlay) closeChapterMenu(); });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && chapterOverlay.classList.contains("active")) closeChapterMenu();
+  });
   el("save-exit-btn").addEventListener("click", showDashboard);
   el("back-to-dashboard-btn").addEventListener("click", showDashboard);
   el("download-btn").addEventListener("click", downloadStory);
@@ -1701,10 +2012,11 @@
     const intensity = el("intensity").value;
     const pacing = el("pacing").value;
     const length = el("story-length").value;
+    const chapterLength = el("chapter-length").value;
     const model = DEFAULT_MODEL;
     const extra = el("extra-notes").value.trim();
 
-    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, length: length, model: model, extra: extra });
+    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, length: length, chapterLength: chapterLength, model: model, extra: extra });
 
     const btn = el("begin-btn");
     const original = btn.textContent;
