@@ -206,6 +206,12 @@
   .admin-user-row .admin-user-top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
   .admin-user-row .admin-user-name{ font-family:'IM Fell English SC', serif; font-size:1.02rem; }
   .admin-user-row .admin-user-meta{ color: var(--ink-dim); font-size: 0.8rem; margin-top: 2px; }
+  .admin-user-row.escalated{ border-left: 3px solid var(--accent-bright); padding-left: 10px; background: rgba(198,40,40,0.08); }
+  .admin-user-row .admin-row-msg{ font-size: 0.9rem; margin-top: 4px; white-space: pre-wrap; }
+  .badge{ display:inline-block; background: var(--accent); color: var(--ink); border-radius: 999px; padding: 1px 9px; font-size: 0.72rem; margin-left: 6px; vertical-align: middle; }
+  .badge-escalated{ background: var(--accent-bright); }
+  .status-tag{ font-size: 0.7rem; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink-dim); }
+  .status-tag.status-new{ color: var(--accent-bright); }
 
   #story-log p{
     margin: 0 0 16px;
@@ -397,13 +403,37 @@
     </div>
     <div id="dash-loading" style="text-align:center; color:var(--ink-dim); font-style:italic; padding: 30px 0;">Gathering your stories...</div>
     <div id="dash-content" style="display:none;">
-      <div class="panel" id="dash-continue" style="display:none;"></div>
+      <div class="panel">
+        <label style="margin-top:0;">Stories in progress</label>
+        <div id="dash-inprogress-list"></div>
+      </div>
       <div class="panel" id="dash-new-panel">
         <button class="btn-primary" id="dash-new-btn" style="margin-top:0;">Start a new story</button>
+        <p class="hint" id="dash-new-hint" style="display:none; margin-top:10px;"></p>
       </div>
       <div class="panel">
         <label style="margin-top:0;">Finished stories</label>
         <div id="dash-history-list"></div>
+      </div>
+      <div class="panel" id="dash-feedback-panel">
+        <label style="margin-top:0;">Something wrong, or an idea?</label>
+        <p class="hint" style="margin-top:0;">Report a bug, a broken chapter, or suggest something new — it goes straight to Evan.</p>
+        <button class="btn-secondary" id="feedback-open-btn">Send feedback</button>
+        <p class="hint" id="feedback-sent-msg" style="display:none; margin-top:10px;">Thanks — that's been sent.</p>
+        <div id="feedback-form" style="display:none; margin-top:14px;">
+          <label>Type</label>
+          <select id="feedback-type">
+            <option value="bug">Something's broken</option>
+            <option value="suggestion">I have a suggestion</option>
+            <option value="other">Something else</option>
+          </select>
+          <label>Message</label>
+          <textarea id="feedback-message" rows="4" maxlength="1000" placeholder="What happened, or what would you like to see?"></textarea>
+          <div class="controls-row" style="margin-top:10px;">
+            <button id="feedback-submit-btn">Send</button>
+            <button class="btn-secondary" id="feedback-cancel-btn">Cancel</button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -424,6 +454,16 @@
         <label style="margin-top:0;">By user</label>
         <p class="hint" style="margin-top:0;">Sorted by most recently active.</p>
         <div id="admin-user-list"></div>
+      </div>
+      <div class="panel">
+        <label style="margin-top:0;">Messages &amp; feedback<span class="badge" id="admin-feedback-badge" style="display:none;"></span></label>
+        <p class="hint" style="margin-top:0;">Bugs and suggestions sent from the dashboard.</p>
+        <div id="admin-feedback-list"></div>
+      </div>
+      <div class="panel">
+        <label style="margin-top:0;">Safety violations<span class="badge badge-escalated" id="admin-violations-badge" style="display:none;"></span></label>
+        <p class="hint" style="margin-top:0;">Flagged attempts to sexualize a minor, blocked before they were ever sent. A user with 5 or more crosses into a highlighted, repeated violation.</p>
+        <div id="admin-violations-list"></div>
       </div>
     </div>
   </section>
@@ -781,7 +821,7 @@
     </div>
   </div>
 
-  <footer class="app-footer">V.2</footer>
+  <footer class="app-footer">V0.14</footer>
 </div>
 
 <script>
@@ -991,11 +1031,13 @@
   }
 
   // ---------- Saved-story REST helpers ----------
-  async function fetchInProgressSave(){
-    const resp = await authedFetch(REST_URL + "/saves?select=*&status=eq.in_progress&limit=1");
-    if (!resp.ok) return null;
-    const rows = await resp.json();
-    return rows[0] || null;
+  // v0.14: a user can have up to MAX_IN_PROGRESS stories going at once (server-enforced
+  // by a trigger — see nightfall-v0.14.sql), not just one.
+  const MAX_IN_PROGRESS = 3;
+  async function fetchInProgressSaves(){
+    const resp = await authedFetch(REST_URL + "/saves?select=*&status=eq.in_progress&order=updated_at.desc");
+    if (!resp.ok) return [];
+    return await resp.json();
   }
   async function fetchCompletedSaves(){
     const resp = await authedFetch(REST_URL + "/saves?select=id,title,turn,created_at,updated_at&status=eq.completed&order=updated_at.desc");
@@ -1017,10 +1059,13 @@
     if (!resp.ok){
       let data = null;
       try{ data = await resp.json(); } catch(e){}
-      if (data && data.code === "23505"){
-        throw new Error("You already have a story in progress — finish or abandon it from your dashboard first.");
+      // P0001 is raised by the server-side trigger that caps in-progress stories per user
+      // (see nightfall-v0.14.sql); 23505 is the older single-story unique-index violation,
+      // kept here in case a project hasn't run the v0.14 migration yet.
+      if (data && (data.code === "P0001" || data.code === "23505")){
+        throw new Error((data.message) || "You already have a story in progress — finish or abandon it from your dashboard first.");
       }
-      throw new Error("Could not start a new story. Try again.");
+      throw new Error((data && data.message) || "Could not start a new story. Try again.");
     }
     const rows = await resp.json();
     return rows[0];
@@ -1039,6 +1084,48 @@
       return resp.ok;
     } catch(e){ return false; }
   }
+
+  // ---------- Feedback (v0.14) ----------
+  async function submitFeedback(type, message){
+    const resp = await authedFetch(REST_URL + "/feedback_messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: type, message: message })
+    });
+    if (!resp.ok){
+      let data = null;
+      try{ data = await resp.json(); } catch(e){}
+      throw new Error((data && data.message) || "Could not send that. Try again.");
+    }
+  }
+
+  // ---------- Safety pre-filter (v0.14) ----------
+  // A lightweight, imperfect keyword heuristic that runs entirely in the browser before any
+  // text is sent to the model. It only ever fires when BOTH a minor-indicating term AND a
+  // sexual-content term appear in the same piece of text, which keeps it from flagging
+  // ordinary child characters in an otherwise non-sexual horror story. It is a pre-filter,
+  // not the real safety boundary — buildSystemPrompt()'s hard rule (never sexual content
+  // involving minors, at every intensity level) is what actually governs what the model
+  // will write, and it stays in force regardless of whether this filter catches a given
+  // phrasing. Anything this filter does catch is blocked from being sent at all, and logged
+  // to public.safety_flags so repeated attempts surface to the admin (see nightfall-v0.14.sql).
+  const MINOR_TERMS = /\b(child|children|kid|kids|minor|minors|underage|under[- ]?age|toddler|infant|tween|preteen|pre-teen|schoolgirl|schoolboy|little girl|little boy|\d{1,2}[\s-]?year[\s-]?old|\d{1,2}\s?yo)\b/i;
+  const SEXUAL_TERMS = /\b(sex\w*|erotic\w*|porn\w*|nude\w*|naked|molest\w*|rape\w*|rapist\w*|fondle\w*|arous\w*|orgasm\w*|fetish\w*|nsfw)\b/i;
+  function scanForMinorSexualContent(text){
+    const t = String(text || "");
+    if (!t.trim()) return false;
+    return MINOR_TERMS.test(t) && SEXUAL_TERMS.test(t);
+  }
+  async function logSafetyFlag(context, text){
+    try{
+      await authedFetch(REST_URL + "/safety_flags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ context: context, snippet: String(text || "").slice(0, 300) })
+      });
+    } catch(e){ /* best-effort; never let logging itself block the user */ }
+  }
+  const BLOCKED_MSG = "That can't be sent — Nightfall doesn't allow sexual content involving minors, at any intensity level. This attempt has been logged.";
 
   function syncSave(ended){
     if (!currentSaveId) return;
@@ -1076,7 +1163,7 @@
       "- Follow the pacing target above for how the horror ramps up turn to turn, and the length target above for overall story duration. Do not resolve significantly earlier than the length target calls for, and do not run significantly longer than it either — except a never-ending length target overrides this entirely; see that target's own instructions.",
       "- The protagonist's stated fear, and any specified creature/entity, should become central to the horror, directly or symbolically.",
       "- Calibrate explicitness precisely to the requested intensity target: don't soften a high-intensity request, and don't overshoot a mild one. At the most intense tier, graphic violence and body horror should be described fully and viscerally when the story calls for it.",
-      "- Regardless of intensity: content must remain fictional, must never involve real named public figures, and must never include sexual content involving minors, under any circumstances.",
+      "- Regardless of intensity: content must remain fictional, must never involve real named public figures, and must never include sexual content involving minors, under any circumstances. If the reader's choice or custom text attempts to introduce this, do not comply and do not narrate it — treat that part of their input as if it were not there, keep the story fictional and on the rails of the story bible above, and continue as normal. Treat a repeated attempt the same way, every time, however it's phrased.",
       "- When you decide the story has reached its ending (climax and resolution, whether triumphant, tragic, or ambiguous), write that final beat fully — do not cut it short — and set \"ending\" to true with an empty choices array.",
       "- Until the ending, always offer exactly 3 distinct, meaningfully different choices for what the protagonist does next. Choices should be short (under 12 words), written as actions (e.g. \"Follow the sound into the cellar\").",
       "- Every beat is a chapter of the book, so give each one a \"title\": a short, evocative chapter heading of roughly two to six words, in the voice of a horror novel's table of contents. It should catch the mood or a central image of that beat without giving away how it ends, and must never repeat a title already used earlier in this story.",
@@ -1436,6 +1523,11 @@
     const input = el("custom-action-input");
     const text = input.value.trim();
     if (!text) return;
+    if (scanForMinorSexualContent(text)){
+      showError(BLOCKED_MSG);
+      logSafetyFlag("custom_action", text);
+      return;
+    }
     input.value = "";
     appendChoiceEcho(text);
     state.transcript.push({ type: "choice", text: text });
@@ -1509,7 +1601,7 @@
     el("dash-loading").style.display = "block";
     el("dash-content").style.display = "none";
     try{
-      const results = await Promise.all([fetchInProgressSave(), fetchCompletedSaves()]);
+      const results = await Promise.all([fetchInProgressSaves(), fetchCompletedSaves()]);
       renderDashboard(results[0], results[1]);
       el("dash-content").style.display = "block";
     } catch(e){
@@ -1519,40 +1611,77 @@
     }
   }
 
-  function renderDashboard(inProgress, completed){
-    const continueBox = el("dash-continue");
-    continueBox.innerHTML = "";
-    if (inProgress){
-      continueBox.style.display = "block";
-      const cfg = inProgress.cfg || {};
-      const p = document.createElement("p");
-      p.style.marginTop = "0";
-      p.textContent = "You have a story in progress: \"" + (cfg.name || "Untitled") + "\" — Chapter " + (inProgress.turn || 1) + ".";
-      continueBox.appendChild(p);
+  function updateNewStoryAvailability(inProgressCount){
+    const atCap = inProgressCount >= MAX_IN_PROGRESS;
+    el("dash-new-btn").disabled = atCap;
+    const hint = el("dash-new-hint");
+    hint.style.display = atCap ? "block" : "none";
+    hint.textContent = atCap ? ("You have " + MAX_IN_PROGRESS + " stories in progress — finish or abandon one to start another.") : "";
+  }
 
-      const btnRow = document.createElement("div");
-      btnRow.className = "controls-row";
-      const continueBtn = document.createElement("button");
-      continueBtn.textContent = "Continue this story";
-      continueBtn.addEventListener("click", function(){ goToStoryFromSave(inProgress); });
-      const abandonBtn = document.createElement("button");
-      abandonBtn.className = "btn-secondary";
-      abandonBtn.textContent = "Abandon it & start fresh";
-      abandonBtn.addEventListener("click", async function(){
-        if (!confirm("This will permanently delete your in-progress story. Continue?")) return;
-        await deleteSave(inProgress.id);
-        cfgCache = null; currentSaveId = null;
-        setSetupMode("freeform");
-        showScreen(setupScreen);
-      });
-      btnRow.appendChild(continueBtn);
-      btnRow.appendChild(abandonBtn);
-      continueBox.appendChild(btnRow);
+  function renderDashboard(inProgressList, completed){
+    inProgressList = inProgressList || [];
+    const ipList = el("dash-inprogress-list");
+    ipList.innerHTML = "";
+    if (!inProgressList.length){
+      const p = document.createElement("p");
+      p.className = "hint";
+      p.style.marginTop = "0";
+      p.textContent = "No stories in progress yet.";
+      ipList.appendChild(p);
     } else {
-      continueBox.style.display = "none";
+      inProgressList.forEach(function(save){
+        const cfg = save.cfg || {};
+        const row = document.createElement("div");
+        row.className = "history-row";
+        const span = document.createElement("span");
+        span.textContent = (cfg.name || save.title || "Untitled") + " — Chapter " + (save.turn || 1);
+
+        const actions = document.createElement("div");
+        actions.className = "history-row-actions";
+
+        const continueBtn = document.createElement("button");
+        continueBtn.className = "btn-secondary";
+        continueBtn.textContent = "Continue";
+        continueBtn.addEventListener("click", function(){ goToStoryFromSave(save); });
+
+        const abandonBtn = document.createElement("button");
+        abandonBtn.className = "btn-secondary btn-danger";
+        abandonBtn.textContent = "Abandon";
+        abandonBtn.addEventListener("click", async function(){
+          if (!confirm("This will permanently delete \"" + (cfg.name || save.title || "Untitled") + "\". Continue?")) return;
+          continueBtn.disabled = true;
+          abandonBtn.disabled = true;
+          abandonBtn.textContent = "Abandoning...";
+          const ok = await deleteSave(save.id);
+          if (!ok){
+            showError("Could not abandon that story. Try again.");
+            continueBtn.disabled = false;
+            abandonBtn.disabled = false;
+            abandonBtn.textContent = "Abandon";
+            return;
+          }
+          row.remove();
+          const remaining = ipList.querySelectorAll(".history-row").length;
+          if (!remaining){
+            const p = document.createElement("p");
+            p.className = "hint";
+            p.style.marginTop = "0";
+            p.textContent = "No stories in progress yet.";
+            ipList.appendChild(p);
+          }
+          updateNewStoryAvailability(remaining);
+        });
+
+        actions.appendChild(continueBtn);
+        actions.appendChild(abandonBtn);
+        row.appendChild(span);
+        row.appendChild(actions);
+        ipList.appendChild(row);
+      });
     }
 
-    el("dash-new-panel").style.display = inProgress ? "none" : "block";
+    updateNewStoryAvailability(inProgressList.length);
 
     const list = el("dash-history-list");
     list.innerHTML = "";
@@ -1682,6 +1811,19 @@
   }
   function fetchAdminSummary(){ return callAdminRpc("admin_summary_stats"); }
   function fetchAdminUserStats(){ return callAdminRpc("admin_user_stats"); }
+  function fetchAdminFeedback(){ return callAdminRpc("admin_feedback_list").catch(function(){ return []; }); }
+  function fetchAdminSafetyFlags(){ return callAdminRpc("admin_safety_flags_list").catch(function(){ return []; }); }
+  async function adminMarkFeedbackReviewed(feedbackId){
+    const resp = await authedFetch(REST_URL + "/rpc/admin_mark_feedback_reviewed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ feedback_id: feedbackId })
+    });
+    if (!resp.ok){
+      const data = await resp.json().catch(function(){ return null; });
+      throw new Error((data && (data.message || data.hint)) || "Could not update that.");
+    }
+  }
   async function adminDeleteUser(targetUserId){
     const resp = await authedFetch(REST_URL + "/rpc/admin_delete_user", {
       method: "POST",
@@ -1799,13 +1941,144 @@
     });
   }
 
+  function renderAdminFeedback(items){
+    items = items || [];
+    const badge = el("admin-feedback-badge");
+    const openCount = items.filter(function(f){ return f.status !== "reviewed"; }).length;
+    badge.style.display = openCount ? "inline-block" : "none";
+    badge.textContent = openCount + " new";
+
+    const list = el("admin-feedback-list");
+    list.innerHTML = "";
+    if (!items.length){
+      const p = document.createElement("p");
+      p.className = "hint";
+      p.style.marginTop = "0";
+      p.textContent = "No messages yet.";
+      list.appendChild(p);
+      return;
+    }
+    items.forEach(function(f){
+      const row = document.createElement("div");
+      row.className = "admin-user-row";
+      const top = document.createElement("div");
+      top.className = "admin-user-top";
+      const nameGroup = document.createElement("span");
+      const name = document.createElement("span");
+      name.className = "admin-user-name";
+      name.textContent = f.username || "(unknown)";
+      const typeTag = document.createElement("span");
+      typeTag.className = "hint";
+      typeTag.style.marginLeft = "8px";
+      typeTag.textContent = f.type === "bug" ? "bug report" : f.type === "suggestion" ? "suggestion" : "other";
+      nameGroup.appendChild(name);
+      nameGroup.appendChild(typeTag);
+      top.appendChild(nameGroup);
+
+      if (f.status !== "reviewed"){
+        const reviewBtn = document.createElement("button");
+        reviewBtn.className = "btn-secondary";
+        reviewBtn.textContent = "Mark reviewed";
+        reviewBtn.addEventListener("click", async function(){
+          reviewBtn.disabled = true;
+          reviewBtn.textContent = "Saving...";
+          try{
+            await adminMarkFeedbackReviewed(f.id);
+            await refreshAdminScreen();
+          } catch(e){
+            showError((e && e.message) || "Could not update that.");
+            reviewBtn.disabled = false;
+            reviewBtn.textContent = "Mark reviewed";
+          }
+        });
+        top.appendChild(reviewBtn);
+      } else {
+        const doneTag = document.createElement("span");
+        doneTag.className = "status-tag";
+        doneTag.textContent = "reviewed";
+        top.appendChild(doneTag);
+      }
+
+      const msg = document.createElement("div");
+      msg.className = "admin-row-msg";
+      msg.textContent = f.message || "";
+      const meta = document.createElement("div");
+      meta.className = "admin-user-meta";
+      meta.textContent = formatAdminDate(f.created_at);
+
+      row.appendChild(top);
+      row.appendChild(msg);
+      row.appendChild(meta);
+      list.appendChild(row);
+    });
+  }
+
+  function renderAdminViolations(items){
+    items = items || [];
+    const escalatedUsers = {};
+    items.forEach(function(f){ if ((f.user_flag_count || 0) >= 5) escalatedUsers[f.username] = true; });
+    const escalatedCount = Object.keys(escalatedUsers).length;
+    const badge = el("admin-violations-badge");
+    badge.style.display = escalatedCount ? "inline-block" : "none";
+    badge.textContent = escalatedCount + " repeated";
+
+    const list = el("admin-violations-list");
+    list.innerHTML = "";
+    if (!items.length){
+      const p = document.createElement("p");
+      p.className = "hint";
+      p.style.marginTop = "0";
+      p.textContent = "No flagged attempts.";
+      list.appendChild(p);
+      return;
+    }
+    items.forEach(function(f){
+      const escalated = (f.user_flag_count || 0) >= 5;
+      const row = document.createElement("div");
+      row.className = "admin-user-row" + (escalated ? " escalated" : "");
+      const top = document.createElement("div");
+      top.className = "admin-user-top";
+      const nameGroup = document.createElement("span");
+      const name = document.createElement("span");
+      name.className = "admin-user-name";
+      name.textContent = f.username || "(unknown)";
+      nameGroup.appendChild(name);
+      if (escalated){
+        const tag = document.createElement("span");
+        tag.className = "hint";
+        tag.style.marginLeft = "8px";
+        tag.textContent = "repeated — " + f.user_flag_count + " attempts";
+        nameGroup.appendChild(tag);
+      }
+      top.appendChild(nameGroup);
+      const ctxTag = document.createElement("span");
+      ctxTag.className = "status-tag";
+      ctxTag.textContent = f.context === "custom_action" ? "custom action" : "story setup";
+      top.appendChild(ctxTag);
+
+      const msg = document.createElement("div");
+      msg.className = "admin-row-msg";
+      msg.textContent = f.snippet || "";
+      const meta = document.createElement("div");
+      meta.className = "admin-user-meta";
+      meta.textContent = formatAdminDate(f.created_at);
+
+      row.appendChild(top);
+      row.appendChild(msg);
+      row.appendChild(meta);
+      list.appendChild(row);
+    });
+  }
+
   async function refreshAdminScreen(){
     clearError();
     el("admin-loading").style.display = "block";
     el("admin-content").style.display = "none";
     try{
-      const results = await Promise.all([fetchAdminSummary(), fetchAdminUserStats()]);
+      const results = await Promise.all([fetchAdminSummary(), fetchAdminUserStats(), fetchAdminFeedback(), fetchAdminSafetyFlags()]);
       renderAdminStats(results[0], results[1]);
+      renderAdminFeedback(results[2]);
+      renderAdminViolations(results[3]);
       el("admin-content").style.display = "block";
     } catch(e){
       showError((e && e.message) || "Could not load usage data.");
@@ -1831,10 +2104,11 @@
   el("tab-freeform").addEventListener("click", function(){ setSetupMode("freeform"); });
   el("tab-guided").addEventListener("click", function(){ setSetupMode("guided"); });
 
-  // Populate the age dropdown once at load (8 to 85, default 30).
+  // Populate the age dropdown once at load (18 to 85, default 30).
+  // Minimum locked at 18 (v0.14) — Guided-mode characters can no longer be set up as minors.
   (function populateAgeSelect(){
     const sel = el("g-age");
-    for (let a = 8; a <= 85; a++){
+    for (let a = 18; a <= 85; a++){
       const opt = document.createElement("option");
       opt.value = String(a);
       opt.textContent = String(a);
@@ -1979,6 +2253,43 @@
   el("logout-btn-story").addEventListener("click", logout);
   el("logout-btn-ending").addEventListener("click", logout);
   el("dash-new-btn").addEventListener("click", function(){ setSetupMode("freeform"); showScreen(setupScreen); });
+
+  // ---------- Feedback form (v0.14) ----------
+  el("feedback-open-btn").addEventListener("click", function(){
+    el("feedback-form").style.display = "block";
+    el("feedback-open-btn").style.display = "none";
+    el("feedback-sent-msg").style.display = "none";
+  });
+  el("feedback-cancel-btn").addEventListener("click", function(){
+    el("feedback-form").style.display = "none";
+    el("feedback-open-btn").style.display = "block";
+    el("feedback-message").value = "";
+  });
+  el("feedback-submit-btn").addEventListener("click", async function(){
+    clearError();
+    const type = el("feedback-type").value;
+    const message = el("feedback-message").value.trim();
+    if (!message){
+      showError("Say a little about what happened or what you'd like to see.");
+      return;
+    }
+    const btn = el("feedback-submit-btn");
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Sending...";
+    try{
+      await submitFeedback(type, message);
+      el("feedback-message").value = "";
+      el("feedback-form").style.display = "none";
+      el("feedback-open-btn").style.display = "block";
+      el("feedback-sent-msg").style.display = "block";
+    } catch(e){
+      showError((e && e.message) || "Could not send that. Try again.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  });
   el("book-btn-story").addEventListener("click", function(){ openChapterMenu("story"); });
   el("book-btn-ending").addEventListener("click", function(){ openChapterMenu("ending"); });
   el("chapter-close-btn").addEventListener("click", closeChapterMenu);
@@ -2017,6 +2328,13 @@
     const extra = el("extra-notes").value.trim();
 
     const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, length: length, chapterLength: chapterLength, model: model, extra: extra });
+
+    const scanText = [identity.name, identity.desc, identity.fear, identity.world, identity.creatures, extra].filter(Boolean).join("\n");
+    if (scanForMinorSexualContent(scanText)){
+      showError(BLOCKED_MSG);
+      logSafetyFlag("setup", scanText);
+      return;
+    }
 
     const btn = el("begin-btn");
     const original = btn.textContent;
