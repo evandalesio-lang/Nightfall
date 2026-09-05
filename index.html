@@ -1235,7 +1235,7 @@
     if (!parsed && retryOnBadJson){
       const retryMessages = messages.concat([
         { role: "assistant", content: rawText },
-        { role: "user", content: "That was not valid JSON in the required format. Respond again with ONLY the JSON object: {\"narration\": string, \"title\": string, \"choices\": string[], \"ending\": boolean}. No other text." }
+        { role: "user", content: "That reply could not be parsed — it was either not valid JSON, or it ran long enough to be cut off before it finished. Write this chapter again, but noticeably shorter this time: aim for about half the length you just attempted, and make sure the closing brace is actually reached. Respond with ONLY the JSON object: {\"narration\": string, \"title\": string, \"choices\": string[], \"ending\": boolean}. No other text." }
       ]);
       return callStoryTurn(systemPrompt, retryMessages, model, { retryOnBadJson: false });
     }
@@ -1515,7 +1515,8 @@
         renderChoices(result.choices);
       }
     } catch(err){
-      showError((err && err.message) || "Something went wrong.");
+      const errMsg = (err && err.message) || "Something went wrong.";
+      showError(errMsg);
       state.messages.pop();
       const lastEntry = state.transcript[state.transcript.length - 1];
       if (lastEntry && lastEntry.type === "choice") state.transcript.pop();
@@ -1523,7 +1524,11 @@
         clearSession();
         showScreen(authScreen);
       } else if (state.turn === 0 && state.transcript.length === 0){
-        showDashboard();
+        // A first-turn failure sends the reader back to the dashboard — but showDashboard()
+        // opens with clearError(), which used to wipe the message we just set and drop them
+        // on a blank dashboard with no idea what happened. Re-raise it after the navigation.
+        await showDashboard();
+        showError(errMsg);
       }
     } finally {
       setLoading(false);
