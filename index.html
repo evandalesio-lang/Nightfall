@@ -574,8 +574,9 @@
             <input type="text" class="other-input" id="g-occupation-other" placeholder="Their occupation">
           </div>
           <div>
-            <label>Habit or flaw</label>
+            <label>Habit or flaw <span class="hint">Optional.</span></label>
             <select id="g-habit" data-other="g-habit-other">
+              <option value="">Leave unspecified — let the story decide</option>
               <option value="smokes when nervous">Smokes when nervous</option>
               <option value="can't resist investigating strange noises">Can't resist investigating strange noises</option>
               <option value="refuses to believe in the supernatural">Refuses to believe in the supernatural</option>
@@ -797,6 +798,18 @@
             <option value="a deeply immersive chapter of roughly 12 to 15 fully developed paragraphs of five to seven sentences each, written exactly like a full chapter of a published horror novel. Develop the scene at length with sustained interiority, sensory texture, extended dialogue between characters, and a genuine sense of time passing before the choice arrives">Immersive</option>
           </select>
         </div>
+        <div>
+          <label>Writing style
+            <span class="hint">The voice the book is written in.</span>
+          </label>
+          <select id="writing-style">
+            <option value="plain, direct, commercial horror prose. State things outright, in clear language the reader moves through without effort. Prefer the short common word over the elaborate one. The horror comes from what happens and what it means, never from ornamented sentences. Write full, developed paragraphs — but plainly written ones. This is the voice of a confident working novelist telling a story, not a writer performing prose" selected>Plain and direct</option>
+            <option value="literary, atmospheric horror prose with a quieter and more elliptical touch. More interiority, more attention to image and implication, longer rhythms, and a willingness to let a single sentence carry real weight. Still always clear and readable — suggestive, never obscure">Literary and atmospheric</option>
+            <option value="lean, propulsive horror prose built for momentum. Shorter sentences, and shorter paragraphs than the chapter length target would otherwise call for — this style deliberately overrides the usual paragraph-density guidance, and paragraphs of two to four sentences are correct here. Light on interiority, heavy on action and dialogue, always pulling toward the next beat">Lean and fast</option>
+            <option value="gothic, formal, slightly archaic prose in the tradition of the classic ghost story. Longer periodic sentences, a measured and faintly distant narrator, and a vocabulary suited to an older world. Rich but never obscure — the reader should still move through it easily">Gothic and formal</option>
+            <option value="understated, matter-of-fact prose that stays dry and restrained even as things get terrible. Report what happens plainly and let horrific events land flat, without the writing reaching for them or telling the reader how to feel. Very sparing with metaphor">Cold and understated</option>
+          </select>
+        </div>
       </div>
 
       <label>Anything else? <span class="hint">Optional. A specific object, a rule, a recurring image — anything you want woven in.</span></label>
@@ -860,7 +873,7 @@
     </div>
   </div>
 
-  <footer class="app-footer">V0.16</footer>
+  <footer class="app-footer">V0.18</footer>
 </div>
 
 <script>
@@ -1192,6 +1205,7 @@
       "Subgenre: " + cfg.subgenre,
       "Intensity target: " + cfg.intensity,
       "Pacing target: " + (cfg.pacing || "a steady, moderate build from the first turn toward the climax"),
+      "Writing style target: " + (cfg.writingStyle || "plain, direct, commercial horror prose. State things outright in clear language the reader moves through without effort, in full but plainly written paragraphs. The horror comes from what happens, never from ornamented sentences"),
       "Chapter length target: " + (cfg.chapterLength || "a standard chapter of roughly 4 to 6 fully developed paragraphs of five to seven sentences each, with real dialogue and interiority"),
       "Length target: " + (cfg.length || ("a standard-length story: aim for a satisfying climax and ending within roughly " + MAX_TURNS_HINT + " turns from the opening")),
       cfg.extra ? ("Additional notes to weave in: " + cfg.extra) : "",
@@ -1210,10 +1224,14 @@
       "- Vary sentence length and rhythm deliberately. A page of uniformly short punchy sentences reads as generated; so does a page of uniformly long ones. Real prose breathes unevenly.",
       "",
       "RESTRAINT — the writing must be easy to read. Density is not the same as strain, and this is where good prose most often goes wrong:",
+      "- The writing style target in the story bible above sets the register, and it governs. Everything in this section applies within it. Where the chosen style and the paragraph-density guidance genuinely conflict, the style target wins — it was chosen deliberately by the reader.",
       "- Clarity comes first, always. A reader should never have to re-read a sentence to work out what physically happened. If a line is doing something clever at the cost of being immediately clear, rewrite it plainly.",
       "- Not every sentence performs. Plain, direct sentences are not filler — they are the floor the good lines stand on. A paragraph where every sentence strains for literary effect is exhausting and reads as trying too hard, which is its own kind of artificial.",
-      "- Do not explain the character to the reader with trailing \"because\" or \"which was\" clauses. Writing \"He kept the receipt, because he was the kind of man who kept things\" states the psychology instead of trusting the act. Let actions stand. Use at most one such explanatory clause in a whole chapter, and prefer none.",
-      "- Do not signal that a detail will matter later. Never write a line like \"she would not think about it again for two hours\", \"it would be another day before she understood\", or \"she had no way of knowing yet\". This is the same move as \"little did she know\" wearing a nicer coat, and it is banned in every form. Plant the detail, describe it once, and move on without commentary. The detail doing its job later is the payoff; flagging it in advance destroys it.",
+      "- Do not explain or evaluate the character's actions with trailing subordinate clauses. This covers \"because\" (\"He kept the receipt, because he was the kind of man who kept things\") and equally \"which\" (\"He watched her openly, which she preferred to the alternative\", \"She turned the mirror to the wall, which took a second\"). Both state the psychology instead of trusting the act, and banning only one makes the habit migrate to the other. Let actions stand on their own. At most one such clause in a whole chapter, and prefer none.",
+      "- Keep backstory short and in plain past tense. Two or three sentences at a time is plenty, and a chapter should almost never open with a paragraph of history. Avoid stacking past-perfect: \"She had taken the job... she had shot weddings for two years... she had learned there that...\" is three layers deep and reads as a character file rather than a story.",
+      "- Do not signal that a detail will matter later. This is banned as a MOVE, not as a list of phrases — every rewording of it is equally forbidden. It includes \"she would not think about it again for two hours\", \"it would be another day before she understood\", \"she had no way of knowing yet\", and just as much the quieter versions: remarking that the character did not think about why she did something, did not ask the obvious question, or did not notice a thing. Never comment on the character's failure to notice, think, or ask. Plant the detail, describe it once, move on without commentary. The detail doing its work later is the payoff; flagging it in advance destroys it.",
+      "- Vary how paragraphs END. This matters more than any single sentence. A paragraph may end on a plain action, an unremarkable observation, an ordinary line of dialogue, or simply because the thought finished — and most of them should. Landing a weighted, ominous, or ironic closing beat at the end of paragraph after paragraph turns the chapter into a metronome, and that steady drumbeat is one of the strongest signals that prose was machine-written. At most one paragraph in four should end on a deliberate note. The rest should just stop.",
+      "- Let characters answer plainly. Deflection and cryptic non-answers are effective once, from one person. When every character speaks in portents (\"You'll know it\", \"Best you not ask\"), the cast stops sounding like people and starts sounding like a haunted-house ride. Most questions in most conversations get an ordinary, useful answer.",
       "- Be sparing with exact numbers. One precise figure can be quietly unsettling; four in a paragraph reads like an inventory and is a hallmark of machine writing. Do not count things the character would not count.",
       "- Every simile and metaphor must survive literal inspection. If the comparison does not physically work when examined, cut it. Use them rarely — a chapter with one good image is stronger than one with six reaching ones.",
       "- Deliver backstory plainly and briefly rather than stacking layers of past-perfect. One clean sentence of history beats a paragraph of \"she had come for... she had found... she had been told...\".",
@@ -1223,7 +1241,7 @@
       "",
       "TOO WRITERLY, do not write like this: \"The gate had been left open, which Daniel took as an invitation, because unlocked things had always felt to him like permission. He counted seven fence posts in the failing six o'clock light and did not think about the seventh again until much later.\"",
       "",
-      "THE TARGET, write like this: \"The gate was open. Daniel stopped at the end of the driveway and looked at it a while, then looked back down the road he had come in on, empty in both directions. He had expected to have to climb something. Somehow the open gate was worse, and he stood there long enough that the engine ticking behind him began to sound like a person shifting their weight.\"",
+      "THE TARGET, write like this: \"The gate was open. Daniel stopped at the end of the driveway and looked at it for a while, then looked back down the road behind him, empty both ways. He had expected to have to climb something. An open gate was worse. He sat there a full minute before he put the car back in gear.\"",
       "",
       "STORY RULES:",
       "- Match the chapter length target above for how much prose each turn contains. Treat it as a real target to hit, not a ceiling to stay under: the reader sees one chapter at a time on screen, so each one should feel like a chapter of a novel rather than a summary of one. Do not pad with repetition to reach the length — earn it with detail, dialogue, interiority, and time spent inside the scene.",
@@ -2398,10 +2416,11 @@
     const pacing = el("pacing").value;
     const length = el("story-length").value;
     const chapterLength = el("chapter-length").value;
+    const writingStyle = el("writing-style").value;
     const model = DEFAULT_MODEL;
     const extra = el("extra-notes").value.trim();
 
-    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, length: length, chapterLength: chapterLength, model: model, extra: extra });
+    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, length: length, chapterLength: chapterLength, writingStyle: writingStyle, model: model, extra: extra });
 
     const scanText = [identity.name, identity.desc, identity.fear, identity.world, identity.creatures, extra].filter(Boolean).join("\n");
     if (scanForMinorSexualContent(scanText)){
