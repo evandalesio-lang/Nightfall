@@ -616,7 +616,7 @@
     </div>
   </div>
 
-  <footer class="app-footer">V0.19</footer>
+  <footer class="app-footer">V0.20</footer>
 </div>
 
 <script>
@@ -640,7 +640,7 @@
 
   // The model is selected server-side in the story-turn edge function; this value is recorded
   // on each save for reference and sent along, but the function is the authority.
-  const DEFAULT_MODEL = "gpt-5-6-sol";
+  const DEFAULT_MODEL = "gpt-5.5-pro";
 
   // Usernames (lowercase) allowed to see the in-app usage dashboard. This only controls
   // whether the "📊 Admin" button shows up in the UI — the real gate is server-side, in the
@@ -952,7 +952,9 @@
       "",
       "HOW TO WRITE IT:",
       "- Third person limited, past tense, anchored in the protagonist.",
-      "- Write it like a published novel: full paragraphs, real dialogue, and a scene the reader is inside rather than told about. Aim for four to six substantial paragraphs per chapter.",
+      "- Write it like a published novel: full paragraphs, real dialogue, and a scene the reader is inside rather than told about.",
+      "- LENGTH — treat this as the single most important instruction here. Each chapter must run roughly 800 to 1,200 words, across five to eight developed paragraphs. That is a target to reach, not a ceiling to stay under. The reader sees one chapter alone on the screen, so anything shorter reads as a fragment rather than a chapter of a book.",
+      "- Reach that length by staying inside the scene rather than by padding. Let the character move through the space and handle things. Let a conversation run for several exchanges instead of one line each. Let a moment land before moving to the next one. If you are near the end of a chapter and well short of the target, it is because you summarized something you should have dramatized — go back into the scene and play it out. Never repeat or restate to fill space.",
       "- Write clearly. Plain, confident prose that is easy to read beats prose that is working hard to impress.",
       "- End each chapter at a natural point and offer exactly 3 short choices for what the protagonist does next, written as actions. When the story reaches its real ending, write that final chapter fully, set ending to true, and return no choices.",
       "- Give every chapter a short title of two to six words. Never reuse one.",
