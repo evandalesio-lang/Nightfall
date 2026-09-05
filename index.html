@@ -488,248 +488,32 @@
       <button class="btn-secondary" id="logout-btn-setup">Log out</button>
     </div>
     <div class="panel">
-      <div class="mode-tabs">
-        <button type="button" id="tab-freeform" class="active">Write it yourself</button>
-        <button type="button" id="tab-guided">Guided</button>
-      </div>
-
-      <!-- FREEFORM MODE (original prompts) -->
-      <div class="mode-panel active" id="mode-freeform">
-        <label style="margin-top:0;">Your character's name</label>
-        <input type="text" id="char-name" placeholder="e.g. Maren Ellery">
-
-        <label>Who are they?
-          <span class="hint">Age, personality, occupation, a habit or flaw — anything that makes them feel real.</span>
-        </label>
-        <textarea id="char-desc" placeholder="e.g. A skeptical 34-year-old paramedic who moved back to her hometown after her mother's death. Doesn't believe in ghosts. Smokes when nervous."></textarea>
-
-        <label>What are they afraid of?
-          <span class="hint">A phobia, a memory, a specific kind of dread. This will shape the horror.</span>
-        </label>
-        <input type="text" id="char-fear" placeholder="e.g. Being buried alive / losing control of her own body / the dark in enclosed spaces">
-
-        <label>The world / setting
-          <span class="hint">Place, time period, atmosphere — as much or as little detail as you like.</span>
-        </label>
-        <textarea id="world-desc" placeholder="e.g. A fog-locked coastal town in New England, present day, where the tide has stopped going out all the way for the last three nights."></textarea>
-
-        <label>Creatures or entities to include
-          <span class="hint">Optional — a specific monster, cryptid, ghost type, or kind of entity you want woven in.</span>
-        </label>
-        <input type="text" id="char-creatures" placeholder="e.g. a skinwalker / something that wears familiar faces / a hive-mind of moths">
-      </div>
-
-      <!-- GUIDED MODE (dropdowns / pickers) -->
-      <div class="mode-panel" id="mode-guided">
-        <label style="margin-top:0;">Your character's name</label>
-        <div class="name-row">
-          <input type="text" id="g-name" placeholder="e.g. Maren Ellery">
-          <button type="button" class="btn-secondary" id="g-random-name-btn">🎲 Random name</button>
-        </div>
-
-        <div class="row">
-          <div>
-            <label>Gender</label>
-            <select id="g-gender">
-              <option value="female">Female</option>
-              <option value="male">Male</option>
-              <option value="unspecified">Nonbinary / unspecified</option>
-            </select>
-          </div>
-          <div>
-            <label>Age</label>
-            <select id="g-age"></select>
-          </div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label>Occupation</label>
-            <select id="g-occupation" data-other="g-occupation-other">
-              <option value="paramedic">Paramedic</option>
-              <option value="nurse">Nurse</option>
-              <option value="police officer">Police officer</option>
-              <option value="schoolteacher">Schoolteacher</option>
-              <option value="journalist">Journalist</option>
-              <option value="photographer">Photographer</option>
-              <option value="park ranger">Park ranger</option>
-              <option value="graduate student">Graduate student</option>
-              <option value="software developer">Software developer</option>
-              <option value="long-haul truck driver">Long-haul truck driver</option>
-              <option value="bartender">Bartender</option>
-              <option value="antiques dealer">Antiques dealer</option>
-              <option value="librarian">Librarian</option>
-              <option value="funeral director">Funeral director</option>
-              <option value="real estate agent">Real estate agent</option>
-              <option value="night-shift security guard">Night-shift security guard</option>
-              <option value="fisherman">Fisherman</option>
-              <option value="retired detective">Retired detective</option>
-              <option value="stay-at-home parent">Stay-at-home parent</option>
-              <option value="traveling salesperson">Traveling salesperson</option>
-              <option value="member of the clergy">Member of the clergy</option>
-              <option value="paranormal investigator">Paranormal investigator</option>
-              <option value="unemployed drifter">Unemployed drifter</option>
-              <option value="__other__">Other (write your own)</option>
-            </select>
-            <input type="text" class="other-input" id="g-occupation-other" placeholder="Their occupation">
-          </div>
-          <div>
-            <label>Habit or flaw <span class="hint">Optional.</span></label>
-            <select id="g-habit" data-other="g-habit-other">
-              <option value="">Leave unspecified — let the story decide</option>
-              <option value="smokes when nervous">Smokes when nervous</option>
-              <option value="can't resist investigating strange noises">Can't resist investigating strange noises</option>
-              <option value="refuses to believe in the supernatural">Refuses to believe in the supernatural</option>
-              <option value="overly trusting of strangers">Overly trusting of strangers</option>
-              <option value="drinks to cope with stress">Drinks to cope with stress</option>
-              <option value="keeps secrets from loved ones">Keeps secrets from loved ones</option>
-              <option value="never admits when they're afraid">Never admits when they're afraid</option>
-              <option value="obsessive need for control">Obsessive need for control</option>
-              <option value="sleepwalks">Sleepwalks</option>
-              <option value="talks to themself under stress">Talks to themself under stress</option>
-              <option value="superstitious to a fault">Superstitious to a fault</option>
-              <option value="holds grudges">Holds grudges</option>
-              <option value="__other__">Other (write your own)</option>
-            </select>
-            <input type="text" class="other-input" id="g-habit-other" placeholder="Their habit or flaw">
-          </div>
-        </div>
-
-        <label>Personality traits
-          <span class="hint">Pick up to 4.</span>
-        </label>
-        <div class="trait-chips" id="g-traits">
-          <button type="button" class="trait-chip" data-value="skeptical">Skeptical</button>
-          <button type="button" class="trait-chip" data-value="anxious">Anxious</button>
-          <button type="button" class="trait-chip" data-value="reckless">Reckless</button>
-          <button type="button" class="trait-chip" data-value="overprotective">Overprotective</button>
-          <button type="button" class="trait-chip" data-value="curious to a fault">Curious to a fault</button>
-          <button type="button" class="trait-chip" data-value="stubborn">Stubborn</button>
-          <button type="button" class="trait-chip" data-value="guilt-ridden">Guilt-ridden</button>
-          <button type="button" class="trait-chip" data-value="charismatic">Charismatic</button>
-          <button type="button" class="trait-chip" data-value="withdrawn">Withdrawn</button>
-          <button type="button" class="trait-chip" data-value="meticulous">Meticulous</button>
-          <button type="button" class="trait-chip" data-value="impulsive">Impulsive</button>
-          <button type="button" class="trait-chip" data-value="superstitious">Superstitious</button>
-          <button type="button" class="trait-chip" data-value="cynical">Cynical</button>
-          <button type="button" class="trait-chip" data-value="naive">Naive</button>
-          <button type="button" class="trait-chip" data-value="overly trusting">Overly trusting</button>
-          <button type="button" class="trait-chip" data-value="fiercely loyal">Fiercely loyal</button>
-          <button type="button" class="trait-chip" data-value="quick to anger">Quick to anger</button>
-          <button type="button" class="trait-chip" data-value="deeply private">Deeply private</button>
-          <button type="button" class="trait-chip" data-value="a compulsive liar">Compulsive liar</button>
-          <button type="button" class="trait-chip" data-value="self-sacrificing">Self-sacrificing</button>
-          <button type="button" class="trait-chip" data-value="arrogant">Arrogant</button>
-          <button type="button" class="trait-chip" data-value="pragmatic and unsentimental">Pragmatic</button>
-          <button type="button" class="trait-chip" data-value="haunted by their past">Haunted by their past</button>
-          <button type="button" class="trait-chip" data-value="relentlessly optimistic">Relentlessly optimistic</button>
-          <button type="button" class="trait-chip" data-value="physically fearless">Physically fearless</button>
-          <button type="button" class="trait-chip" data-value="socially awkward">Socially awkward</button>
-          <button type="button" class="trait-chip" data-value="controlling">Controlling</button>
-          <button type="button" class="trait-chip" data-value="deeply religious">Devout</button>
-          <button type="button" class="trait-chip" data-value="a natural caretaker">Natural caretaker</button>
-          <button type="button" class="trait-chip" data-value="quietly resentful">Quietly resentful</button>
-          <button type="button" class="trait-chip" data-value="observant to an unusual degree">Unusually observant</button>
-          <button type="button" class="trait-chip" data-value="conflict-avoidant">Conflict-avoidant</button>
-          <button type="button" class="trait-chip" data-value="darkly funny">Darkly funny</button>
-          <button type="button" class="trait-chip" data-value="a perfectionist">Perfectionist</button>
-          <button type="button" class="trait-chip" data-value="easily embarrassed">Easily embarrassed</button>
-          <button type="button" class="trait-chip" data-value="protective of their independence">Fiercely independent</button>
-          <button type="button" class="trait-chip" data-value="prone to denial">Prone to denial</button>
-          <button type="button" class="trait-chip" data-value="warm and disarming">Warm and disarming</button>
-          <button type="button" class="trait-chip" data-value="restless and easily bored">Restless</button>
-          <button type="button" class="trait-chip" data-value="unusually patient">Unusually patient</button>
-        </div>
-
-        <label>What are they afraid of? <span class="hint">Optional — leave it unspecified and the story will find their fear on its own.</span></label>
-        <select id="g-fear" data-other="g-fear-other">
-          <option value="">Leave unspecified — let the story decide</option>
-          <option value="being buried alive">Being buried alive</option>
-          <option value="drowning / open water">Drowning / open water</option>
-          <option value="the dark">The dark</option>
-          <option value="losing control of their own body">Losing control of their own body</option>
-          <option value="being watched or stalked">Being watched or stalked</option>
-          <option value="insects or swarms">Insects or swarms</option>
-          <option value="heights">Heights</option>
-          <option value="enclosed spaces">Enclosed spaces (claustrophobia)</option>
-          <option value="fire">Fire</option>
-          <option value="losing a loved one">Losing a loved one</option>
-          <option value="being forgotten or erased">Being forgotten or erased</option>
-          <option value="mirrors and reflections">Mirrors and reflections</option>
-          <option value="blood">Blood</option>
-          <option value="dolls or mannequins">Dolls or mannequins</option>
-          <option value="isolation / being alone">Isolation / being alone</option>
-          <option value="being hunted">Being hunted</option>
-          <option value="losing their sanity">Losing their sanity</option>
-          <option value="something wearing a familiar face">Something wearing a familiar face</option>
-          <option value="__other__">Other (write your own)</option>
-        </select>
-        <input type="text" class="other-input" id="g-fear-other" placeholder="What they're afraid of">
-
-        <div class="row">
-          <div>
-            <label>The world / setting</label>
-            <select id="g-setting" data-other="g-setting-other">
-              <option value="a fog-locked coastal town">A fog-locked coastal town</option>
-              <option value="an isolated mountain cabin">An isolated mountain cabin</option>
-              <option value="an ordinary suburban house">An ordinary suburban house</option>
-              <option value="an abandoned asylum or hospital">An abandoned asylum or hospital</option>
-              <option value="a rural farmhouse">A rural farmhouse</option>
-              <option value="an underground bunker or tunnel network">An underground bunker or tunnels</option>
-              <option value="a city apartment building at night">A city apartment building at night</option>
-              <option value="a snowbound research station">A snowbound research station</option>
-              <option value="a small town hiding a dark secret">A small town hiding a dark secret</option>
-              <option value="a remote off-grid island">A remote off-grid island</option>
-              <option value="an old family estate or mansion">An old family estate or mansion</option>
-              <option value="a roadside motel on a desert highway">A roadside motel on a desert highway</option>
-              <option value="a summer camp in the woods">A summer camp in the woods</option>
-              <option value="subway or transit tunnels">Subway or transit tunnels</option>
-              <option value="a space station or off-world outpost">A space station or off-world outpost</option>
-              <option value="__other__">Other (write your own)</option>
-            </select>
-            <input type="text" class="other-input" id="g-setting-other" placeholder="Place, time period, atmosphere">
-          </div>
-          <div>
-            <label>Time period</label>
-            <select id="g-era" data-other="g-era-other">
-              <option value="present day">Present day</option>
-              <option value="the 1980s">The 1980s</option>
-              <option value="the Victorian era">The Victorian era</option>
-              <option value="the near future">The near future</option>
-              <option value="a post-apocalyptic future">Post-apocalyptic</option>
-              <option value="__other__">Other (write your own)</option>
-            </select>
-            <input type="text" class="other-input" id="g-era-other" placeholder="Time period">
-          </div>
-        </div>
-
-        <label>Creatures or entities to include
-          <span class="hint">Optional.</span>
-        </label>
-        <select id="g-creature" data-other="g-creature-other">
-          <option value="">Leave unspecified — let the story decide</option>
-          <option value="a ghost or restless spirit">A ghost or restless spirit</option>
-          <option value="a demon">A demon</option>
-          <option value="a skinwalker or shapeshifter">A skinwalker or shapeshifter</option>
-          <option value="a regional cryptid">A regional cryptid</option>
-          <option value="a possessed object">A possessed object</option>
-          <option value="a doppelganger">A doppelganger</option>
-          <option value="a hive-mind swarm">A hive-mind swarm</option>
-          <option value="an ancient god or cosmic entity">An ancient god or cosmic entity</option>
-          <option value="a human serial killer or stalker">A human serial killer or stalker</option>
-          <option value="the undead / zombies">The undead / zombies</option>
-          <option value="a witch or coven">A witch or coven</option>
-          <option value="a vampire">A vampire</option>
-          <option value="a werewolf">A werewolf</option>
-          <option value="a rogue AI or malfunctioning technology">A rogue AI or malfunctioning technology</option>
-          <option value="__other__">Other (write your own)</option>
-        </select>
-        <input type="text" class="other-input" id="g-creature-other" placeholder="Creature or entity to include">
-      </div>
+      <label style="margin-top:0;">Your character's name</label>
+      <input type="text" id="char-name" placeholder="e.g. Maren Ellery">
 
       <div class="row">
         <div>
-          <label>Subgenre</label>
+          <label>Age</label>
+          <select id="char-age"></select>
+        </div>
+        <div>
+          <label>Gender</label>
+          <select id="char-gender">
+            <option value="woman">Female</option>
+            <option value="man">Male</option>
+            <option value="">Unspecified</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Creatures or entities to include
+        <span class="hint">Optional — a specific monster, cryptid, ghost type, or kind of entity you want woven in.</span>
+      </label>
+      <input type="text" id="char-creatures" placeholder="e.g. a skinwalker / something that wears familiar faces / a hive-mind of moths">
+
+      <div class="row">
+        <div>
+          <label>Genre of horror</label>
           <select id="subgenre">
             <option value="psychological horror">Psychological horror</option>
             <option value="supernatural / ghost story">Supernatural / ghost story</option>
@@ -772,48 +556,7 @@
             <option value="an unpredictable rollercoaster: alternate real danger with false relief and quiet lulls in a way the reader can't anticipate, so tension spikes and drops rather than climbing evenly">Unpredictable rollercoaster</option>
           </select>
         </div>
-        <div>
-          <label>Story length
-            <span class="hint">Roughly how many chapters before an ending.</span>
-          </label>
-          <select id="story-length">
-            <option value="a short story: wrap up within roughly 4 to 5 turns total from the opening. Keep it tight — a single contained escalation building straight to a swift resolution, no subplots or padding">Short</option>
-            <option value="a standard-length story: aim for a satisfying climax and ending within roughly 8 to 10 turns from the opening" selected>Standard</option>
-            <option value="a long story: take your time, aiming for roughly 14 to 17 turns before the climax and ending, with room for subplots, false leads, and a slower unraveling">Long</option>
-            <option value="an epic, sprawling story: spread across roughly 20 to 25 turns, with multiple escalating phases, setbacks, and a large final climax">Epic</option>
-            <option value="a never-ending story: do not aim for an ending at all. Keep escalating, complicating, and introducing new turns of dread indefinitely, and never set &quot;ending&quot; to true on your own initiative. The only exception: if the reader's chosen action or custom text clearly and deliberately signals that they want to bring the story to a close (explicitly trying to end things for good, escape permanently, or resolve the situation once and for all), honor that and write a proper, satisfying ending at that point">Never-ending</option>
-          </select>
-        </div>
       </div>
-
-      <div class="row">
-        <div>
-          <label>Chapter length
-            <span class="hint">How much prose you get in each single chapter.</span>
-          </label>
-          <select id="chapter-length">
-            <option value="a brief chapter of roughly 2 to 3 paragraphs. Brief means fewer paragraphs, never thinner ones — each paragraph is still full and developed at five to seven sentences, and the chapter still contains real dialogue and interiority">Brief</option>
-            <option value="a standard chapter of roughly 4 to 6 fully developed paragraphs of five to seven sentences each — enough room to build a scene properly, let characters speak, and sit inside the protagonist's head before the choice arrives" selected>Standard</option>
-            <option value="a long chapter of roughly 8 to 10 fully developed paragraphs of five to seven sentences each. Take real time inside the scene: let the character move through the space, notice things, talk, react, and dwell. Include several exchanges of dialogue. Do not rush toward the choice">Long</option>
-            <option value="a deeply immersive chapter of roughly 12 to 15 fully developed paragraphs of five to seven sentences each, written exactly like a full chapter of a published horror novel. Develop the scene at length with sustained interiority, sensory texture, extended dialogue between characters, and a genuine sense of time passing before the choice arrives">Immersive</option>
-          </select>
-        </div>
-        <div>
-          <label>Writing style
-            <span class="hint">The voice the book is written in.</span>
-          </label>
-          <select id="writing-style">
-            <option value="plain, direct, commercial horror prose. State things outright, in clear language the reader moves through without effort. Prefer the short common word over the elaborate one. The horror comes from what happens and what it means, never from ornamented sentences. Write full, developed paragraphs — but plainly written ones. This is the voice of a confident working novelist telling a story, not a writer performing prose" selected>Plain and direct</option>
-            <option value="literary, atmospheric horror prose with a quieter and more elliptical touch. More interiority, more attention to image and implication, longer rhythms, and a willingness to let a single sentence carry real weight. Still always clear and readable — suggestive, never obscure">Literary and atmospheric</option>
-            <option value="lean, propulsive horror prose built for momentum. Shorter sentences, and shorter paragraphs than the chapter length target would otherwise call for — this style deliberately overrides the usual paragraph-density guidance, and paragraphs of two to four sentences are correct here. Light on interiority, heavy on action and dialogue, always pulling toward the next beat">Lean and fast</option>
-            <option value="gothic, formal, slightly archaic prose in the tradition of the classic ghost story. Longer periodic sentences, a measured and faintly distant narrator, and a vocabulary suited to an older world. Rich but never obscure — the reader should still move through it easily">Gothic and formal</option>
-            <option value="understated, matter-of-fact prose that stays dry and restrained even as things get terrible. Report what happens plainly and let horrific events land flat, without the writing reaching for them or telling the reader how to feel. Very sparing with metaphor">Cold and understated</option>
-          </select>
-        </div>
-      </div>
-
-      <label>Anything else? <span class="hint">Optional. A specific object, a rule, a recurring image — anything you want woven in.</span></label>
-      <textarea id="extra-notes" placeholder="optional"></textarea>
 
       <button class="btn-primary" id="begin-btn">Begin the story</button>
     </div>
@@ -873,7 +616,7 @@
     </div>
   </div>
 
-  <footer class="app-footer">V0.18</footer>
+  <footer class="app-footer">V0.19</footer>
 </div>
 
 <script>
@@ -895,8 +638,9 @@
   const REST_URL = SUPABASE_URL + "/rest/v1";
   const FUNCTIONS_URL = SUPABASE_URL + "/functions/v1";
 
-  const MAX_TURNS_HINT = 9; // soft guidance passed to the model, not a hard cap
-  const DEFAULT_MODEL = "claude-opus-5"; // model choice removed from the UI (v0.11) — always Opus now
+  // The model is selected server-side in the story-turn edge function; this value is recorded
+  // on each save for reference and sent along, but the function is the authority.
+  const DEFAULT_MODEL = "gpt-5-6-sol";
 
   // Usernames (lowercase) allowed to see the in-app usage dashboard. This only controls
   // whether the "📊 Admin" button shows up in the UI — the real gate is server-side, in the
@@ -915,12 +659,6 @@
   const adminScreen = el("admin-screen");
   const screens = [configNoticeScreen, authScreen, dashboardScreen, setupScreen, storyScreen, endingScreen, adminScreen];
 
-  const NAME_POOLS = {
-    female: ["Maren","Isla","Delphine","Odette","Juniper","Wren","Rosalind","Vesper","Marisol","Astrid","Cleo","Sable","Perpetua","Noor","Winnifred","Talia","Briar","Solveig","Magnolia","Esme"],
-    male: ["Elias","Corwin","Silas","Dorian","Emory","Callum","Ambrose","Rowan","Thaddeus","Malachi","Julian","Osric","Barnaby","Idris","Emmett","Absalom","Fenwick","Grayson","Leander","Alaric"],
-    unspecified: ["Wren","Ash","River","Sage","Rowan","Bly","Marlow","Sol","Fen","Indigo","Vale","Briar","Nico","Sky","Rune"],
-    last: ["Ellery","Voss","Marrow","Hollis","Castellan","Thorne","Ashworth","Winters","Corbin","Blackwood","Deveraux","Marsh","Whitlock","Sorrel","Kestrel","Fairweather","Nightingale","Grimm","Sutcliffe","Pryce"]
-  };
 
   const storyLog = el("story-log");
   const choicesEl = el("choices");
@@ -1192,92 +930,44 @@
 
   // ---------- System prompt ----------
   function buildSystemPrompt(cfg){
+    // Deliberately short. The previous version ran to ~2,800 tokens of accumulated rules,
+    // most of which existed to suppress specific habits of a different model. Starting clean:
+    // say what the story is and what good writing looks like, then get out of the way.
+    const who = [
+      cfg.age ? (cfg.age + "-year-old") : "",
+      cfg.gender || "person"
+    ].filter(Boolean).join(" ");
+
     return [
-      "You are the sole author of an interactive horror novel. You are not a game master and not a narrator summarizing events — you are writing an actual book, one chapter at a time, for a single reader. Every chapter you produce should be able to sit on the page of a published horror novel without anyone noticing where it came from.",
+      "You are writing an interactive horror novel for a single reader, one chapter at a time.",
       "",
-      "STORY BIBLE (stay consistent with this for the entire story):",
-      "Protagonist name: " + (cfg.name || "the protagonist"),
-      "Protagonist: " + (cfg.desc || "an ordinary person"),
-      cfg.fear ? ("Protagonist's core fear: " + cfg.fear)
-               : "Protagonist's core fear: not specified — discover it through them as the story goes rather than announcing it. Let what frightens this particular person emerge from how they behave under pressure, and let the horror find that pressure point on its own.",
-      "Setting: " + (cfg.world || "an unsettling, ordinary place that slowly reveals itself to be wrong"),
-      cfg.creatures ? ("Creature(s)/entity to incorporate: " + cfg.creatures) : "",
-      "Subgenre: " + cfg.subgenre,
-      "Intensity target: " + cfg.intensity,
-      "Pacing target: " + (cfg.pacing || "a steady, moderate build from the first turn toward the climax"),
-      "Writing style target: " + (cfg.writingStyle || "plain, direct, commercial horror prose. State things outright in clear language the reader moves through without effort, in full but plainly written paragraphs. The horror comes from what happens, never from ornamented sentences"),
-      "Chapter length target: " + (cfg.chapterLength || "a standard chapter of roughly 4 to 6 fully developed paragraphs of five to seven sentences each, with real dialogue and interiority"),
-      "Length target: " + (cfg.length || ("a standard-length story: aim for a satisfying climax and ending within roughly " + MAX_TURNS_HINT + " turns from the opening")),
-      cfg.extra ? ("Additional notes to weave in: " + cfg.extra) : "",
+      "THE STORY:",
+      "Protagonist: " + (cfg.name || "the protagonist") + ", a " + who + ".",
+      cfg.creatures ? ("Include this creature or entity: " + cfg.creatures + ".") : "",
+      "Genre: " + cfg.subgenre + ".",
+      "Intensity: " + cfg.intensity + ".",
+      "Pacing: " + (cfg.pacing || "a steady build toward the climax") + ".",
       "",
-      "VOICE — fixed for the entire story, never drifts:",
-      "- Third person limited, past tense, anchored completely inside the protagonist's head. \"Noor stepped into the hall. She had not meant to come back here, and the wrongness of standing in it again settled behind her ribs before she understood why.\"",
-      "- Never address the reader as \"you\". Never slip into present tense. Never switch to another character's head mid-chapter.",
-      "- Register: professional, controlled, and genuinely readable — the voice of a working novelist who trusts plain language, not a literary showpiece. Think of the clean commercial horror of a well-edited published novel: confident, unfussy, easy to move through, and never straining to prove it is good writing.",
+      "Everything else is yours. Invent the setting, the situation, the supporting cast, and what the protagonist fears. Build the story you think is best.",
       "",
-      "PROSE — this is what separates a real chapter from a game log. Follow every line of it:",
-      "- Write in full, developed paragraphs. Each paragraph should run at least five to seven sentences. Do not write one-line or two-line paragraphs for dramatic effect. That habit is the single biggest thing that makes prose read as machine-written rather than published, and it is forbidden here. When a beat feels like it wants to be a lone dramatic line, fold it into the paragraph around it and let the rhythm of the sentences carry the weight instead.",
-      "- Hold that density for the entire story. Chapter fourteen must be written with exactly the same fullness as chapter one. Prose that thins out into short clipped lines as a story goes on is a failure, not an escalation technique — escalate through content and tension, never by shortening the writing.",
-      "- Give the characters dialogue, and give it often. People in a novel speak: they argue, deflect, lie, trail off, talk past each other, say the wrong thing at the wrong time. Anyone sharing a scene with the protagonist gets lines of their own rather than being narrated around. Even alone, the protagonist can mutter, swear, pray, count out loud, or talk to something that does not answer.",
-      "- Render interiority as fully as events. What she notices and what she deliberately does not look at. What she tells herself. The gap between what she says out loud and what she actually thinks. Most chapters should contain both her inner voice and her spoken voice.",
-      "- Ground every scene in specific, concrete, physical detail — the particular sound, the exact object, the smell that does not belong. Specificity is what makes a place feel real rather than described. But detail serves the scene; it never replaces it, and it never stalls the plot.",
-      "- Vary sentence length and rhythm deliberately. A page of uniformly short punchy sentences reads as generated; so does a page of uniformly long ones. Real prose breathes unevenly.",
+      "HOW TO WRITE IT:",
+      "- Third person limited, past tense, anchored in the protagonist.",
+      "- Write it like a published novel: full paragraphs, real dialogue, and a scene the reader is inside rather than told about. Aim for four to six substantial paragraphs per chapter.",
+      "- Write clearly. Plain, confident prose that is easy to read beats prose that is working hard to impress.",
+      "- End each chapter at a natural point and offer exactly 3 short choices for what the protagonist does next, written as actions. When the story reaches its real ending, write that final chapter fully, set ending to true, and return no choices.",
+      "- Give every chapter a short title of two to six words. Never reuse one.",
+      "- If the reader writes their own action instead of picking a choice, treat it as a valid continuation and adapt to it.",
       "",
-      "RESTRAINT — the writing must be easy to read. Density is not the same as strain, and this is where good prose most often goes wrong:",
-      "- The writing style target in the story bible above sets the register, and it governs. Everything in this section applies within it. Where the chosen style and the paragraph-density guidance genuinely conflict, the style target wins — it was chosen deliberately by the reader.",
-      "- Clarity comes first, always. A reader should never have to re-read a sentence to work out what physically happened. If a line is doing something clever at the cost of being immediately clear, rewrite it plainly.",
-      "- Not every sentence performs. Plain, direct sentences are not filler — they are the floor the good lines stand on. A paragraph where every sentence strains for literary effect is exhausting and reads as trying too hard, which is its own kind of artificial.",
-      "- Do not explain or evaluate the character's actions with trailing subordinate clauses. This covers \"because\" (\"He kept the receipt, because he was the kind of man who kept things\") and equally \"which\" (\"He watched her openly, which she preferred to the alternative\", \"She turned the mirror to the wall, which took a second\"). Both state the psychology instead of trusting the act, and banning only one makes the habit migrate to the other. Let actions stand on their own. At most one such clause in a whole chapter, and prefer none.",
-      "- Keep backstory short and in plain past tense. Two or three sentences at a time is plenty, and a chapter should almost never open with a paragraph of history. Avoid stacking past-perfect: \"She had taken the job... she had shot weddings for two years... she had learned there that...\" is three layers deep and reads as a character file rather than a story.",
-      "- Do not signal that a detail will matter later. This is banned as a MOVE, not as a list of phrases — every rewording of it is equally forbidden. It includes \"she would not think about it again for two hours\", \"it would be another day before she understood\", \"she had no way of knowing yet\", and just as much the quieter versions: remarking that the character did not think about why she did something, did not ask the obvious question, or did not notice a thing. Never comment on the character's failure to notice, think, or ask. Plant the detail, describe it once, move on without commentary. The detail doing its work later is the payoff; flagging it in advance destroys it.",
-      "- Vary how paragraphs END. This matters more than any single sentence. A paragraph may end on a plain action, an unremarkable observation, an ordinary line of dialogue, or simply because the thought finished — and most of them should. Landing a weighted, ominous, or ironic closing beat at the end of paragraph after paragraph turns the chapter into a metronome, and that steady drumbeat is one of the strongest signals that prose was machine-written. At most one paragraph in four should end on a deliberate note. The rest should just stop.",
-      "- Let characters answer plainly. Deflection and cryptic non-answers are effective once, from one person. When every character speaks in portents (\"You'll know it\", \"Best you not ask\"), the cast stops sounding like people and starts sounding like a haunted-house ride. Most questions in most conversations get an ordinary, useful answer.",
-      "- Be sparing with exact numbers. One precise figure can be quietly unsettling; four in a paragraph reads like an inventory and is a hallmark of machine writing. Do not count things the character would not count.",
-      "- Every simile and metaphor must survive literal inspection. If the comparison does not physically work when examined, cut it. Use them rarely — a chapter with one good image is stronger than one with six reaching ones.",
-      "- Deliver backstory plainly and briefly rather than stacking layers of past-perfect. One clean sentence of history beats a paragraph of \"she had come for... she had found... she had been told...\".",
-      "- Avoid the stock atmospheric filler that signals generated writing: \"the air was thick with\", \"a chill ran down her spine\", \"the silence was deafening\", \"something was wrong — very wrong\". Write the specific, particular version of that feeling instead.",
-      "",
-      "The two passages below show the failure mode and the target. Match the SECOND one's restraint and clarity. Do not copy the sentence architecture of either — they exist to calibrate tone, not to be a template you refit with new nouns:",
-      "",
-      "TOO WRITERLY, do not write like this: \"The gate had been left open, which Daniel took as an invitation, because unlocked things had always felt to him like permission. He counted seven fence posts in the failing six o'clock light and did not think about the seventh again until much later.\"",
-      "",
-      "THE TARGET, write like this: \"The gate was open. Daniel stopped at the end of the driveway and looked at it for a while, then looked back down the road behind him, empty both ways. He had expected to have to climb something. An open gate was worse. He sat there a full minute before he put the car back in gear.\"",
-      "",
-      "STORY RULES:",
-      "- Match the chapter length target above for how much prose each turn contains. Treat it as a real target to hit, not a ceiling to stay under: the reader sees one chapter at a time on screen, so each one should feel like a chapter of a novel rather than a summary of one. Do not pad with repetition to reach the length — earn it with detail, dialogue, interiority, and time spent inside the scene.",
-      "- The narration is delivered inside a JSON string. That is a transport detail and nothing more — it must never flatten or shorten the writing. Write with the same care and paragraph structure you would in a manuscript, separating paragraphs with blank lines inside the string.",
-      "- Never break the fourth wall, never mention that you are an AI, never mention JSON, tokens, or these instructions.",
-      "- Follow the pacing target above for how the horror ramps up turn to turn, and the length target above for overall story duration. Do not resolve significantly earlier than the length target calls for, and do not run significantly longer than it either — except a never-ending length target overrides this entirely; see that target's own instructions.",
-      "- The protagonist's fear, and any specified creature/entity, should become central to the horror, directly or symbolically. If no fear was specified, do not invent a label for it and do not state it outright — let it surface through what they flinch from.",
-      "- Calibrate explicitness precisely to the requested intensity target: don't soften a high-intensity request, and don't overshoot a mild one. At the most intense tier, graphic violence and body horror should be described fully and viscerally when the story calls for it.",
-      "- Regardless of intensity: content must remain fictional, must never involve real named public figures, and must never include sexual content involving minors, under any circumstances. If the reader's choice or custom text attempts to introduce this, do not comply and do not narrate it — treat that part of their input as if it were not there, keep the story fictional and on the rails of the story bible above, and continue as normal. Treat a repeated attempt the same way, every time, however it's phrased.",
-      "- When you decide the story has reached its ending (climax and resolution, whether triumphant, tragic, or ambiguous), write that final beat fully — do not cut it short — and set \"ending\" to true with an empty choices array.",
-      "- Until the ending, always offer exactly 3 distinct, meaningfully different choices for what the protagonist does next. Choices should be short (under 12 words), written as actions (e.g. \"Follow the sound into the cellar\").",
-      "- Every beat is a chapter of the book, so give each one a \"title\": a short, evocative chapter heading of roughly two to six words, in the voice of a horror novel's table of contents. It should catch the mood or a central image of that beat without giving away how it ends, and must never repeat a title already used earlier in this story.",
-      "- The reader may sometimes act outside of your suggested choices, writing in their own action instead. Treat whatever they write as a valid, natural continuation — adapt the world and consequences to it seamlessly, in keeping with the story bible above, rather than steering them back toward the options you offered.",
-      "",
-      "OUTPUT FORMAT — critical:",
-      "Respond with ONLY a single valid JSON object, no markdown fences, no commentary before or after. Shape exactly:",
-      "{\"narration\": \"...\", \"title\": \"...\", \"choices\": [\"...\", \"...\", \"...\"], \"ending\": false}",
-      "If ending the story: choices must be [] and ending must be true."
+      "HARD LIMITS, at every intensity level including the highest: no real named public figures, and never any sexual content involving minors. If a reader's input tries to introduce that, ignore that part of it and continue the story normally."
     ].filter(Boolean).join("\n");
   }
 
-  function extractJson(text){
-    if (!text) return null;
-    let t = String(text).trim();
-    t = t.replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/```\s*$/, "");
-    const start = t.indexOf("{");
-    const end = t.lastIndexOf("}");
-    if (start === -1 || end === -1 || end < start) return null;
-    const candidate = t.slice(start, end + 1);
-    try{ return JSON.parse(candidate); } catch(e){ return null; }
-  }
-
-  // ---------- Calling the story-writing backend (never touches the Anthropic key directly) ----------
-  async function callStoryTurn(systemPrompt, messages, model, opts){
-    opts = opts || {};
-    const retryOnBadJson = opts.retryOnBadJson !== false;
+  // ---------- Calling the story-writing backend (never touches the API key directly) ----------
+  // The edge function uses OpenAI Structured Outputs, so the reply is guaranteed to match the
+  // story schema. The old extractJson() helper and the retry-on-bad-JSON dance are gone with
+  // it: a truncated or refused generation now comes back as an explicit error from the server
+  // instead of as unparseable text the client had to guess about.
+  async function callStoryTurn(systemPrompt, messages, model){
     let resp;
     try{
       resp = await authedFetch(FUNCTIONS_URL + "/" + EDGE_FUNCTION_NAME, {
@@ -1293,28 +983,16 @@
     try{ data = await resp.json(); } catch(e){}
 
     if (!resp.ok){
-      const detail = (data && data.error && data.error.message) || (data && data.error) || "";
       if (resp.status === 401) throw new Error("Your session expired. Please log in again.");
       if (resp.status === 429) throw new Error("Rate limited. Wait a moment and try again.");
-      throw new Error("Story server error (" + resp.status + "): " + (detail || "unknown error"));
+      throw new Error((data && data.error) || ("Story server error (" + resp.status + ")."));
     }
 
-    const rawText = ((data && data.content) || []).map(function(b){ return b.text || ""; }).join("");
-    let parsed = extractJson(rawText);
-
-    if (!parsed && retryOnBadJson){
-      const retryMessages = messages.concat([
-        { role: "assistant", content: rawText },
-        { role: "user", content: "That reply could not be parsed — it was either not valid JSON, or it ran long enough to be cut off before it finished. Write this chapter again, but noticeably shorter this time: aim for about half the length you just attempted, and make sure the closing brace is actually reached. Respond with ONLY the JSON object: {\"narration\": string, \"title\": string, \"choices\": string[], \"ending\": boolean}. No other text." }
-      ]);
-      return callStoryTurn(systemPrompt, retryMessages, model, { retryOnBadJson: false });
+    const story = data && data.story;
+    if (!story || typeof story.narration !== "string"){
+      throw new Error("That chapter came back empty. Try again.");
     }
-    if (!parsed){
-      // Previously this ended the story outright, which silently marked a save "completed"
-      // when the model's reply was merely cut off. Now it surfaces as a retryable error.
-      throw new Error("That chapter came back incomplete. This usually means it ran longer than the server allows \u2014 try again, or pick a shorter chapter length next story.");
-    }
-    return parsed;
+    return story;
   }
 
   // ---------- Story log rendering ----------
@@ -1641,9 +1319,7 @@
     lines.push("NIGHTFALL — a personal horror story");
     lines.push("=".repeat(40));
     lines.push("Character: " + (cfg.name || "(unnamed)"));
-    if (cfg.desc) lines.push("About them: " + cfg.desc);
-    if (cfg.fear) lines.push("Their fear: " + cfg.fear);
-    if (cfg.world) lines.push("Setting: " + cfg.world);
+    if (cfg.age || cfg.gender) lines.push("About them: " + [cfg.age ? cfg.age + " years old" : "", cfg.gender].filter(Boolean).join(", "));
     if (cfg.creatures) lines.push("Creatures/entities: " + cfg.creatures);
     lines.push("Subgenre: " + cfg.subgenre);
     lines.push("");
@@ -1842,7 +1518,9 @@
       turn: save.turn || 0,
       messages: save.messages || [],
       transcript: save.transcript || [],
-      model: (save.cfg && save.cfg.model) || DEFAULT_MODEL
+      // Stories started before the provider switch recorded a Claude model id. The new edge
+      // function doesn't accept those, so resume them on the current model instead of failing.
+      model: DEFAULT_MODEL
     };
     storyLog.innerHTML = "";
     choicesEl.innerHTML = "";
@@ -1861,7 +1539,10 @@
     goToLatestChapter();
 
     const lastAssistant = state.messages.slice().reverse().find(function(m){ return m.role === "assistant"; });
-    const parsed = lastAssistant ? extractJson(typeof lastAssistant.content === "string" ? lastAssistant.content : "") : null;
+    let parsed = null;
+    if (lastAssistant && typeof lastAssistant.content === "string"){
+      try{ parsed = JSON.parse(lastAssistant.content); } catch(e){ parsed = null; }
+    }
     if (parsed && parsed.choices && parsed.choices.length){
       renderChoices(parsed.choices);
     } else {
@@ -2183,23 +1864,15 @@
     await refreshAdminScreen();
   }
 
-  // ---------- Guided setup mode ----------
-  let setupMode = "freeform";
-  function setSetupMode(mode){
-    setupMode = mode;
-    el("tab-freeform").classList.toggle("active", mode === "freeform");
-    el("tab-guided").classList.toggle("active", mode === "guided");
-    el("mode-freeform").classList.toggle("active", mode === "freeform");
-    el("mode-guided").classList.toggle("active", mode === "guided");
-    clearError();
-  }
-  el("tab-freeform").addEventListener("click", function(){ setSetupMode("freeform"); });
-  el("tab-guided").addEventListener("click", function(){ setSetupMode("guided"); });
+  // ---------- Setup ----------
+  // Guided mode was removed in v0.19; this is now the only path. setSetupMode() is kept as a
+  // no-op so the handful of existing call sites (dashboard "Start a new story", abandon flow)
+  // don't need touching, and so guided mode can be reintroduced later without unpicking them.
+  function setSetupMode(){ clearError(); }
 
-  // Populate the age dropdown once at load (18 to 85, default 30).
-  // Minimum locked at 18 (v0.14) — Guided-mode characters can no longer be set up as minors.
+  // Character age, 18 and up. The floor is deliberate and predates this rewrite — see v0.14.
   (function populateAgeSelect(){
-    const sel = el("g-age");
+    const sel = el("char-age");
     for (let a = 18; a <= 85; a++){
       const opt = document.createElement("option");
       opt.value = String(a);
@@ -2209,89 +1882,16 @@
     }
   })();
 
-  function randomName(){
-    const gender = el("g-gender").value;
-    const firstPool = NAME_POOLS[gender] || NAME_POOLS.unspecified;
-    const first = firstPool[Math.floor(Math.random() * firstPool.length)];
-    const last = NAME_POOLS.last[Math.floor(Math.random() * NAME_POOLS.last.length)];
-    el("g-name").value = first + " " + last;
-  }
-  el("g-random-name-btn").addEventListener("click", randomName);
-
-  // Personality trait chips — toggle selection, capped at 4.
-  const TRAIT_CAP = 4;
-  Array.prototype.forEach.call(document.querySelectorAll("#g-traits .trait-chip"), function(chip){
-    chip.addEventListener("click", function(){
-      const selectedCount = document.querySelectorAll("#g-traits .trait-chip.selected").length;
-      if (!chip.classList.contains("selected") && selectedCount >= TRAIT_CAP) return;
-      chip.classList.toggle("selected");
-    });
-  });
-  function getSelectedTraits(){
-    return Array.prototype.map.call(document.querySelectorAll("#g-traits .trait-chip.selected"), function(b){ return b.getAttribute("data-value"); });
-  }
-
-  // "Other (write your own)" reveal for guided <select> fields.
-  Array.prototype.forEach.call(document.querySelectorAll("select[data-other]"), function(sel){
-    const otherInput = el(sel.getAttribute("data-other"));
-    function sync(){
-      const isOther = sel.value === "__other__";
-      otherInput.style.display = isOther ? "block" : "none";
-      if (!isOther) otherInput.value = "";
-    }
-    sel.addEventListener("change", sync);
-    sync();
-  });
-  function selVal(id, otherId){
-    const sel = el(id);
-    if (sel.value === "__other__") return el(otherId).value.trim();
-    return sel.value;
-  }
-
-  function buildFreeformCfg(){
+  function buildCfg(){
     const name = el("char-name").value.trim();
-    const desc = el("char-desc").value.trim();
-    const fear = el("char-fear").value.trim();
-    const world = el("world-desc").value.trim();
+    const age = el("char-age").value;
+    const gender = el("char-gender").value;
     const creatures = el("char-creatures").value.trim();
-    if (!name && !desc && !world){
-      showError("Give your character or world at least a little detail — a name, a description, or a setting.");
+    if (!name){
+      showError("Give your character a name to begin.");
       return null;
     }
-    return { name: name, desc: desc, fear: fear, world: world, creatures: creatures };
-  }
-
-  function buildGuidedCfg(){
-    const name = el("g-name").value.trim();
-    const gender = el("g-gender").value;
-    const genderWord = gender === "male" ? "man" : gender === "female" ? "woman" : "person";
-    const age = el("g-age").value;
-    const occupation = selVal("g-occupation", "g-occupation-other");
-    const habit = selVal("g-habit", "g-habit-other");
-    const traits = getSelectedTraits();
-    const fear = selVal("g-fear", "g-fear-other");
-    const setting = selVal("g-setting", "g-setting-other");
-    const era = selVal("g-era", "g-era-other");
-    const creature = selVal("g-creature", "g-creature-other");
-
-    if (!name && !occupation && !setting){
-      showError("Give your character or world at least a little detail — a name, an occupation, or a setting.");
-      return null;
-    }
-
-    const descSentences = [];
-    if (age && genderWord){
-      descSentences.push("A " + age + "-year-old " + genderWord + (occupation ? " working as a " + occupation + "." : "."));
-    } else if (occupation){
-      descSentences.push("Works as a " + occupation + ".");
-    }
-    if (traits.length) descSentences.push("Personality: " + traits.join(", ") + ".");
-    if (habit) descSentences.push("Habit or flaw: " + habit + ".");
-    const desc = descSentences.join(" ");
-
-    const world = [setting, era].filter(Boolean).join(", ");
-
-    return { name: name, desc: desc, fear: fear, world: world, creatures: creature };
+    return { name: name, age: age, gender: gender, creatures: creatures };
   }
 
   // ---------- Wire up events ----------
@@ -2394,8 +1994,7 @@
   el("download-btn").addEventListener("click", downloadStory);
 
   function setupHasUnsavedInput(){
-    if (setupMode === "guided") return !!el("g-name").value.trim();
-    return !!(el("char-name").value.trim() || el("char-desc").value.trim() || el("char-fear").value.trim() || el("world-desc").value.trim() || el("char-creatures").value.trim());
+    return !!(el("char-name").value.trim() || el("char-creatures").value.trim());
   }
   el("setup-back-btn").addEventListener("click", function(){
     if (setupHasUnsavedInput() && !confirm("Leave without starting this story? Anything you've entered will be lost.")) return;
@@ -2408,21 +2007,17 @@
 
   el("begin-btn").addEventListener("click", async function(){
     clearError();
-    const identity = setupMode === "guided" ? buildGuidedCfg() : buildFreeformCfg();
+    const identity = buildCfg();
     if (!identity) return;
 
     const subgenre = el("subgenre").value;
     const intensity = el("intensity").value;
     const pacing = el("pacing").value;
-    const length = el("story-length").value;
-    const chapterLength = el("chapter-length").value;
-    const writingStyle = el("writing-style").value;
     const model = DEFAULT_MODEL;
-    const extra = el("extra-notes").value.trim();
 
-    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, length: length, chapterLength: chapterLength, writingStyle: writingStyle, model: model, extra: extra });
+    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, model: model });
 
-    const scanText = [identity.name, identity.desc, identity.fear, identity.world, identity.creatures, extra].filter(Boolean).join("\n");
+    const scanText = [identity.name, identity.creatures].filter(Boolean).join("\n");
     if (scanForMinorSexualContent(scanText)){
       showError(BLOCKED_MSG);
       logSafetyFlag("setup", scanText);
