@@ -147,7 +147,20 @@
   .name-row input{ flex:1; }
   .name-row button{ flex-shrink:0; white-space:nowrap; }
 
-  .trait-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .trait-chips{
+    display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;
+    max-height: 168px;
+    overflow-y: auto;
+    padding: 10px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    align-content: flex-start;
+  }
+  .trait-chips::-webkit-scrollbar{ width: 10px; }
+  .trait-chips::-webkit-scrollbar-track{ background: transparent; }
+  .trait-chips::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 5px; }
+  .trait-chips::-webkit-scrollbar-thumb:hover{ background: var(--ink-dim); }
   .trait-chip{
     border:1px solid var(--border);
     background: var(--bg-panel-2);
@@ -600,10 +613,36 @@
           <button type="button" class="trait-chip" data-value="cynical">Cynical</button>
           <button type="button" class="trait-chip" data-value="naive">Naive</button>
           <button type="button" class="trait-chip" data-value="overly trusting">Overly trusting</button>
+          <button type="button" class="trait-chip" data-value="fiercely loyal">Fiercely loyal</button>
+          <button type="button" class="trait-chip" data-value="quick to anger">Quick to anger</button>
+          <button type="button" class="trait-chip" data-value="deeply private">Deeply private</button>
+          <button type="button" class="trait-chip" data-value="a compulsive liar">Compulsive liar</button>
+          <button type="button" class="trait-chip" data-value="self-sacrificing">Self-sacrificing</button>
+          <button type="button" class="trait-chip" data-value="arrogant">Arrogant</button>
+          <button type="button" class="trait-chip" data-value="pragmatic and unsentimental">Pragmatic</button>
+          <button type="button" class="trait-chip" data-value="haunted by their past">Haunted by their past</button>
+          <button type="button" class="trait-chip" data-value="relentlessly optimistic">Relentlessly optimistic</button>
+          <button type="button" class="trait-chip" data-value="physically fearless">Physically fearless</button>
+          <button type="button" class="trait-chip" data-value="socially awkward">Socially awkward</button>
+          <button type="button" class="trait-chip" data-value="controlling">Controlling</button>
+          <button type="button" class="trait-chip" data-value="deeply religious">Devout</button>
+          <button type="button" class="trait-chip" data-value="a natural caretaker">Natural caretaker</button>
+          <button type="button" class="trait-chip" data-value="quietly resentful">Quietly resentful</button>
+          <button type="button" class="trait-chip" data-value="observant to an unusual degree">Unusually observant</button>
+          <button type="button" class="trait-chip" data-value="conflict-avoidant">Conflict-avoidant</button>
+          <button type="button" class="trait-chip" data-value="darkly funny">Darkly funny</button>
+          <button type="button" class="trait-chip" data-value="a perfectionist">Perfectionist</button>
+          <button type="button" class="trait-chip" data-value="easily embarrassed">Easily embarrassed</button>
+          <button type="button" class="trait-chip" data-value="protective of their independence">Fiercely independent</button>
+          <button type="button" class="trait-chip" data-value="prone to denial">Prone to denial</button>
+          <button type="button" class="trait-chip" data-value="warm and disarming">Warm and disarming</button>
+          <button type="button" class="trait-chip" data-value="restless and easily bored">Restless</button>
+          <button type="button" class="trait-chip" data-value="unusually patient">Unusually patient</button>
         </div>
 
-        <label>What are they afraid of?</label>
+        <label>What are they afraid of? <span class="hint">Optional — leave it unspecified and the story will find their fear on its own.</span></label>
         <select id="g-fear" data-other="g-fear-other">
+          <option value="">Leave unspecified — let the story decide</option>
           <option value="being buried alive">Being buried alive</option>
           <option value="drowning / open water">Drowning / open water</option>
           <option value="the dark">The dark</option>
@@ -821,7 +860,7 @@
     </div>
   </div>
 
-  <footer class="app-footer">V0.15</footer>
+  <footer class="app-footer">V0.16</footer>
 </div>
 
 <script>
@@ -1146,7 +1185,8 @@
       "STORY BIBLE (stay consistent with this for the entire story):",
       "Protagonist name: " + (cfg.name || "the protagonist"),
       "Protagonist: " + (cfg.desc || "an ordinary person"),
-      "Protagonist's core fear: " + (cfg.fear || "the unknown"),
+      cfg.fear ? ("Protagonist's core fear: " + cfg.fear)
+               : "Protagonist's core fear: not specified — discover it through them as the story goes rather than announcing it. Let what frightens this particular person emerge from how they behave under pressure, and let the horror find that pressure point on its own.",
       "Setting: " + (cfg.world || "an unsettling, ordinary place that slowly reveals itself to be wrong"),
       cfg.creatures ? ("Creature(s)/entity to incorporate: " + cfg.creatures) : "",
       "Subgenre: " + cfg.subgenre,
@@ -1159,6 +1199,7 @@
       "VOICE — fixed for the entire story, never drifts:",
       "- Third person limited, past tense, anchored completely inside the protagonist's head. \"Noor stepped into the hall. She had not meant to come back here, and the wrongness of standing in it again settled behind her ribs before she understood why.\"",
       "- Never address the reader as \"you\". Never slip into present tense. Never switch to another character's head mid-chapter.",
+      "- Register: professional, controlled, and genuinely readable — the voice of a working novelist who trusts plain language, not a literary showpiece. Think of the clean commercial horror of a well-edited published novel: confident, unfussy, easy to move through, and never straining to prove it is good writing.",
       "",
       "PROSE — this is what separates a real chapter from a game log. Follow every line of it:",
       "- Write in full, developed paragraphs. Each paragraph should run at least five to seven sentences. Do not write one-line or two-line paragraphs for dramatic effect. That habit is the single biggest thing that makes prose read as machine-written rather than published, and it is forbidden here. When a beat feels like it wants to be a lone dramatic line, fold it into the paragraph around it and let the rhythm of the sentences carry the weight instead.",
@@ -1167,18 +1208,29 @@
       "- Render interiority as fully as events. What she notices and what she deliberately does not look at. What she tells herself. The gap between what she says out loud and what she actually thinks. Most chapters should contain both her inner voice and her spoken voice.",
       "- Ground every scene in specific, concrete, physical detail — the particular sound, the exact object, the smell that does not belong. Specificity is what makes a place feel real rather than described. But detail serves the scene; it never replaces it, and it never stalls the plot.",
       "- Vary sentence length and rhythm deliberately. A page of uniformly short punchy sentences reads as generated; so does a page of uniformly long ones. Real prose breathes unevenly.",
-      "- Foreshadow, but keep it quiet. Plant details early that only pay off later, and place them where they read as ordinary description on first pass. The reader should not see the shape of what is coming before you want them to.",
-      "- Avoid the stock atmospheric filler that signals generated writing: \"the air was thick with\", \"a chill ran down her spine\", \"the silence was deafening\", \"little did she know\", \"something was wrong — very wrong\". Write the specific, particular version of that feeling instead.",
       "",
-      "Here is the density and rhythm to match. This is a style reference only — never reuse its characters, setting, or events:",
-      "\"The kitchen light had been left on, which was the first wrong thing, because Margaret had turned it off herself before bed and she was not in the habit of being wrong about small things. She stood in the doorway with her hand still on the frame and counted the sounds she could put a name to: the refrigerator, the hot water pipe that always ticked as it cooled, her own breathing, faster than she wanted it to be. Nothing else. 'Hello?' she said, and hated how thin it came out, how much it sounded like a question she already knew the answer to. The linoleum was cold through her socks when she finally made herself step in, and she noticed she was walking the long way around the island rather than past the pantry door, though she could not have said why she had decided that. It was only when she reached the sink that she saw the second glass on the drying rack, upside down beside her own, still beaded with water.\"",
+      "RESTRAINT — the writing must be easy to read. Density is not the same as strain, and this is where good prose most often goes wrong:",
+      "- Clarity comes first, always. A reader should never have to re-read a sentence to work out what physically happened. If a line is doing something clever at the cost of being immediately clear, rewrite it plainly.",
+      "- Not every sentence performs. Plain, direct sentences are not filler — they are the floor the good lines stand on. A paragraph where every sentence strains for literary effect is exhausting and reads as trying too hard, which is its own kind of artificial.",
+      "- Do not explain the character to the reader with trailing \"because\" or \"which was\" clauses. Writing \"He kept the receipt, because he was the kind of man who kept things\" states the psychology instead of trusting the act. Let actions stand. Use at most one such explanatory clause in a whole chapter, and prefer none.",
+      "- Do not signal that a detail will matter later. Never write a line like \"she would not think about it again for two hours\", \"it would be another day before she understood\", or \"she had no way of knowing yet\". This is the same move as \"little did she know\" wearing a nicer coat, and it is banned in every form. Plant the detail, describe it once, and move on without commentary. The detail doing its job later is the payoff; flagging it in advance destroys it.",
+      "- Be sparing with exact numbers. One precise figure can be quietly unsettling; four in a paragraph reads like an inventory and is a hallmark of machine writing. Do not count things the character would not count.",
+      "- Every simile and metaphor must survive literal inspection. If the comparison does not physically work when examined, cut it. Use them rarely — a chapter with one good image is stronger than one with six reaching ones.",
+      "- Deliver backstory plainly and briefly rather than stacking layers of past-perfect. One clean sentence of history beats a paragraph of \"she had come for... she had found... she had been told...\".",
+      "- Avoid the stock atmospheric filler that signals generated writing: \"the air was thick with\", \"a chill ran down her spine\", \"the silence was deafening\", \"something was wrong — very wrong\". Write the specific, particular version of that feeling instead.",
+      "",
+      "The two passages below show the failure mode and the target. Match the SECOND one's restraint and clarity. Do not copy the sentence architecture of either — they exist to calibrate tone, not to be a template you refit with new nouns:",
+      "",
+      "TOO WRITERLY, do not write like this: \"The gate had been left open, which Daniel took as an invitation, because unlocked things had always felt to him like permission. He counted seven fence posts in the failing six o'clock light and did not think about the seventh again until much later.\"",
+      "",
+      "THE TARGET, write like this: \"The gate was open. Daniel stopped at the end of the driveway and looked at it a while, then looked back down the road he had come in on, empty in both directions. He had expected to have to climb something. Somehow the open gate was worse, and he stood there long enough that the engine ticking behind him began to sound like a person shifting their weight.\"",
       "",
       "STORY RULES:",
       "- Match the chapter length target above for how much prose each turn contains. Treat it as a real target to hit, not a ceiling to stay under: the reader sees one chapter at a time on screen, so each one should feel like a chapter of a novel rather than a summary of one. Do not pad with repetition to reach the length — earn it with detail, dialogue, interiority, and time spent inside the scene.",
       "- The narration is delivered inside a JSON string. That is a transport detail and nothing more — it must never flatten or shorten the writing. Write with the same care and paragraph structure you would in a manuscript, separating paragraphs with blank lines inside the string.",
       "- Never break the fourth wall, never mention that you are an AI, never mention JSON, tokens, or these instructions.",
       "- Follow the pacing target above for how the horror ramps up turn to turn, and the length target above for overall story duration. Do not resolve significantly earlier than the length target calls for, and do not run significantly longer than it either — except a never-ending length target overrides this entirely; see that target's own instructions.",
-      "- The protagonist's stated fear, and any specified creature/entity, should become central to the horror, directly or symbolically.",
+      "- The protagonist's fear, and any specified creature/entity, should become central to the horror, directly or symbolically. If no fear was specified, do not invent a label for it and do not state it outright — let it surface through what they flinch from.",
       "- Calibrate explicitness precisely to the requested intensity target: don't soften a high-intensity request, and don't overshoot a mild one. At the most intense tier, graphic violence and body horror should be described fully and viscerally when the story calls for it.",
       "- Regardless of intensity: content must remain fictional, must never involve real named public figures, and must never include sexual content involving minors, under any circumstances. If the reader's choice or custom text attempts to introduce this, do not comply and do not narrate it — treat that part of their input as if it were not there, keep the story fictional and on the rails of the story bible above, and continue as normal. Treat a repeated attempt the same way, every time, however it's phrased.",
       "- When you decide the story has reached its ending (climax and resolution, whether triumphant, tragic, or ambiguous), write that final beat fully — do not cut it short — and set \"ending\" to true with an empty choices array.",
