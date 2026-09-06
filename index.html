@@ -563,6 +563,11 @@
         </div>
       </div>
 
+      <label>Notes for the writer
+        <span class="hint">Optional. Anything else you want steered — a setting, a tone, a rule, an image, something to avoid.</span>
+      </label>
+      <textarea id="story-notes" maxlength="1500" placeholder="e.g. set it in the Pennsylvania coal country / no gore, keep it psychological / the protagonist should have a sister who never appears on the page"></textarea>
+
       <button class="btn-primary" id="begin-btn">Begin the story</button>
     </div>
   </section>
@@ -621,7 +626,7 @@
     </div>
   </div>
 
-  <footer class="app-footer">V0.21</footer>
+  <footer class="app-footer">V0.22</footer>
 </div>
 
 <script>
@@ -645,7 +650,7 @@
 
   // The model is selected server-side in the story-turn edge function; this value is recorded
   // on each save for reference and sent along, but the function is the authority.
-  const DEFAULT_MODEL = "gpt-5.5-pro";
+  const DEFAULT_MODEL = "gpt-5.5";
 
   // Usernames (lowercase) allowed to see the in-app usage dashboard. This only controls
   // whether the "📊 Admin" button shows up in the UI — the real gate is server-side, in the
@@ -968,6 +973,8 @@
       "- Give every chapter a short title of two to six words. Never reuse one.",
       "- If the reader writes their own action instead of picking a choice, treat it as a valid continuation and adapt to it.",
       "",
+      cfg.notes ? ("READER'S NOTES — additional guidance from the person this story is being written for. Follow it. Where it conflicts with anything above, including the suggested setting, the reader's notes win: " + cfg.notes) : "",
+      "",
       "HARD LIMITS, at every intensity level including the highest: no real named public figures, and never any sexual content involving minors. If a reader's input tries to introduce that, ignore that part of it and continue the story normally."
     ].filter(Boolean).join("\n");
   }
@@ -995,6 +1002,12 @@
     if (!resp.ok){
       if (resp.status === 401) throw new Error("Your session expired. Please log in again.");
       if (resp.status === 429) throw new Error("Rate limited. Wait a moment and try again.");
+      if (resp.status === 546 || resp.status === 504){
+        throw new Error("That chapter took too long to write and the server stopped it. Chapters get slower as a story grows, so this usually means the writing model is too slow for this story's length. Try again — if it keeps happening, the model needs changing in the story-turn function.");
+      }
+      if (resp.status === 503 || resp.status === 502){
+        throw new Error((data && data.error) || "The story server had a problem. Try again in a moment.");
+      }
       throw new Error((data && data.error) || ("Story server error (" + resp.status + ")."));
     }
 
@@ -2052,7 +2065,7 @@
   el("download-btn").addEventListener("click", downloadStory);
 
   function setupHasUnsavedInput(){
-    return !!(el("char-name").value.trim() || el("char-creatures").value.trim());
+    return !!(el("char-name").value.trim() || el("char-creatures").value.trim() || el("story-notes").value.trim());
   }
   el("setup-back-btn").addEventListener("click", function(){
     if (setupHasUnsavedInput() && !confirm("Leave without starting this story? Anything you've entered will be lost.")) return;
@@ -2074,11 +2087,12 @@
       : subgenreSel.value;
     const intensity = el("intensity").value;
     const pacing = el("pacing").value;
+    const notes = el("story-notes").value.trim();
     const model = DEFAULT_MODEL;
 
-    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, settingSeed: pickSettingSeed(), model: model });
+    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, settingSeed: pickSettingSeed(), notes: notes, model: model });
 
-    const scanText = [identity.name, identity.creatures].filter(Boolean).join("\n");
+    const scanText = [identity.name, identity.creatures, notes].filter(Boolean).join("\n");
     if (scanForMinorSexualContent(scanText)){
       showError(BLOCKED_MSG);
       logSafetyFlag("setup", scanText);
