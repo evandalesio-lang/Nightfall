@@ -514,24 +514,29 @@
       <div class="row">
         <div>
           <label>Genre of horror</label>
-          <select id="subgenre">
-            <option value="psychological horror">Psychological horror</option>
-            <option value="supernatural / ghost story">Supernatural / ghost story</option>
-            <option value="cosmic / Lovecraftian horror">Cosmic / Lovecraftian horror</option>
-            <option value="existential horror">Existential horror</option>
-            <option value="gothic horror">Gothic horror</option>
-            <option value="slasher / survival horror">Slasher / survival horror</option>
-            <option value="folk horror">Folk horror</option>
-            <option value="occult / demonic horror">Occult / demonic horror</option>
-            <option value="body horror">Body horror</option>
-            <option value="monster / creature horror">Monster / creature horror</option>
-            <option value="quiet horror (subtle, literary dread)">Quiet horror (subtle, literary)</option>
-            <option value="techno-horror / AI horror">Techno-horror / AI horror</option>
-            <option value="apocalyptic horror">Apocalyptic horror</option>
-            <option value="home invasion / isolation horror">Home invasion / isolation</option>
-            <option value="found-footage style">Found-footage style</option>
-            <option value="splatterpunk (extreme, visceral horror)">Splatterpunk (extreme)</option>
+          <select id="subgenre" data-other="subgenre-other">
+            <option value="psychological horror, where the dread comes from the mind: unreliable perception, paranoia, and the fear that the protagonist cannot trust their own account of things">Psychological</option>
+            <option value="a supernatural ghost story, centred on the returning dead, hauntings, and unfinished business that refuses to stay buried">Supernatural / ghost story</option>
+            <option value="cosmic horror, concerned with scale and indifference: forces vastly older and larger than humanity that are not hostile so much as wholly unconcerned, and knowledge that damages whoever learns it. Avoid the specific trappings of the Lovecraft mythos here — this is the sense of insignificance, not tentacles and forbidden tomes">Cosmic</option>
+            <option value="Lovecraftian horror in the classic mythos idiom: antiquarian research, forbidden texts, secretive cults, degenerate bloodlines, geometry that behaves wrongly, and ancient sleeping entities. Lean into the genre's distinctive furniture and cadence">Lovecraftian</option>
+            <option value="existential horror, where the threat is meaninglessness itself: identity coming apart, time behaving wrongly, and the suspicion that nothing underneath is holding anything up">Existential</option>
+            <option value="gothic horror: inherited guilt, decaying grand architecture, family secrets, oppressive atmosphere, and the past pressing physically into the present">Gothic</option>
+            <option value="slasher horror: a specific pursuing killer, a group being reduced one at a time, mounting set-piece confrontations, and the mounting arithmetic of who is left">Slasher</option>
+            <option value="survival horror, driven by scarcity and endurance rather than a single antagonist: dwindling resources, injury, cold, hunger, and an environment actively trying to finish the protagonist off">Survival</option>
+            <option value="folk horror: old rural custom, land that remembers, a community with rules the outsider does not know, and rituals that were never actually abandoned">Folk</option>
+            <option value="occult and demonic horror: possession, summoning, bargains with things that keep their word too exactly, and religious dread">Occult / demonic</option>
+            <option value="body horror, concentrated on flesh: transformation, infection, wrongness inside the protagonist's own body, and the loss of bodily autonomy described unflinchingly">Body horror</option>
+            <option value="monster and creature horror, built around a specific physical predator: its behaviour, its rules, its hunting, and the escalating encounters with it">Monster / creature</option>
+            <option value="quiet horror: understated, restrained, and deeply unsettling. Very little happens overtly; the dread is in implication, small wrongness, and what is never explained">Quiet horror</option>
+            <option value="techno-horror: machine intelligence, surveillance, systems that know too much, and technology behaving with intent it should not have">Techno-horror / AI</option>
+            <option value="apocalyptic horror: collapse in progress, infrastructure failing, and the social order coming apart faster than anyone will admit">Apocalyptic</option>
+            <option value="home invasion horror: a defended domestic space violated by intruders, the terrible intimacy of a stranger inside somewhere safe, and the fight to hold ground">Home invasion</option>
+            <option value="isolation horror: cut off from any help, too far from rescue for rescue to matter, with the distance and the silence doing the work a monster usually would">Isolation</option>
+            <option value="found-footage style: told as recovered record — recordings, logs, transcripts — with the gaps, degradation and unreliability that implies">Found-footage</option>
+            <option value="splatterpunk: extreme, transgressive, visceral horror that refuses to look away from graphic violence and its aftermath">Splatterpunk</option>
+            <option value="__other__">Other (write your own)</option>
           </select>
+          <input type="text" class="other-input" id="subgenre-other" placeholder="e.g. nautical horror / carnival horror / medical horror">
         </div>
         <div>
           <label>Intensity</label>
@@ -616,7 +621,7 @@
     </div>
   </div>
 
-  <footer class="app-footer">V0.20</footer>
+  <footer class="app-footer">V0.21</footer>
 </div>
 
 <script>
@@ -948,7 +953,9 @@
       "Intensity: " + cfg.intensity + ".",
       "Pacing: " + (cfg.pacing || "a steady build toward the climax") + ".",
       "",
-      "Everything else is yours. Invent the setting, the situation, the supporting cast, and what the protagonist fears. Build the story you think is best.",
+      cfg.settingSeed ? ("Starting point for the setting: " + cfg.settingSeed + ". Use this as the seed of the story's world. You may develop, complicate or move outward from it as the story grows, but begin here and do not relocate the story somewhere unrelated.") : "",
+      "Everything else is yours. Invent the situation, the supporting cast, and what the protagonist fears. Build the story you think is best.",
+      "- Do not default to the coast. Fog-bound seaside towns, tide flats, islands, lighthouses, harbours and fishing villages are the most overused settings in this genre. Unless the reader explicitly asked for the sea, keep the story away from it entirely.",
       "",
       "HOW TO WRITE IT:",
       "- Third person limited, past tense, anchored in the protagonist.",
@@ -956,6 +963,7 @@
       "- LENGTH — treat this as the single most important instruction here. Each chapter must run roughly 800 to 1,200 words, across five to eight developed paragraphs. That is a target to reach, not a ceiling to stay under. The reader sees one chapter alone on the screen, so anything shorter reads as a fragment rather than a chapter of a book.",
       "- Reach that length by staying inside the scene rather than by padding. Let the character move through the space and handle things. Let a conversation run for several exchanges instead of one line each. Let a moment land before moving to the next one. If you are near the end of a chapter and well short of the target, it is because you summarized something you should have dramatized — go back into the scene and play it out. Never repeat or restate to fill space.",
       "- Write clearly. Plain, confident prose that is easy to read beats prose that is working hard to impress.",
+      "- Be immersive. Keep the reader inside the protagonist's direct experience as it happens: what she can see from where she is standing, what she does with her hands, what the place sounds and smells like, who is talking to her and what they actually say. Prefer a scene playing out in real time over a summary of events. Concrete physical detail, not general description.",
       "- End each chapter at a natural point and offer exactly 3 short choices for what the protagonist does next, written as actions. When the story reaches its real ending, write that final chapter fully, set ending to true, and return no choices.",
       "- Give every chapter a short title of two to six words. Never reuse one.",
       "- If the reader writes their own action instead of picking a choice, treat it as a valid continuation and adapt to it.",
@@ -1884,6 +1892,54 @@
     }
   })();
 
+  // "Other (write your own)" reveals a text input. Re-added in v0.21 for the genre field.
+  Array.prototype.forEach.call(document.querySelectorAll("select[data-other]"), function(sel){
+    const otherInput = el(sel.getAttribute("data-other"));
+    function sync(){
+      const isOther = sel.value === "__other__";
+      otherInput.style.display = isOther ? "block" : "none";
+      if (!isOther) otherInput.value = "";
+    }
+    sel.addEventListener("change", sync);
+    sync();
+  });
+
+  // Every story used to start from an identical prompt with "invent the setting" and nothing
+  // else, so the model reached for the same default every time — coastal, foggy, isolated.
+  // This hands each new story a different starting locale to break that. Deliberately contains
+  // no coastal, island, lighthouse or fishing-village entries, since that is the rut being
+  // escaped. Chosen once at story creation and stored in cfg, so it stays stable across turns.
+  const SETTING_SEEDS = [
+    "a high-desert motel on a decommissioned highway",
+    "a university library over a snowed-in winter break",
+    "a meatpacking plant on its last night of operation",
+    "a suburban cul-de-sac during a heatwave blackout",
+    "an overnight long-haul trucking route through farmland",
+    "a retirement home in a converted grand hotel",
+    "a ski resort out of season, mostly shut",
+    "a data centre in the desert, staffed by three people",
+    "a decommissioned hospital wing being cleared out",
+    "an apartment block halfway through a gut renovation",
+    "a show cave partway through a guided tour",
+    "a grain elevator in a farm town at harvest",
+    "a film production on location, well behind schedule",
+    "a mining town at altitude, in thin air",
+    "an airport hotel during an indefinite ground stop",
+    "a subway maintenance tunnel between stations",
+    "a megachurch complex, near-empty on a weekday",
+    "a border-town bus depot in the small hours",
+    "a self-storage facility on the edge of an industrial estate",
+    "a state fairground being dismantled after closing",
+    "a rural veterinary practice during calving season",
+    "a research station on a remote plateau",
+    "a night shift at a 24-hour laundromat",
+    "an estate sale in a house being cleared after a death",
+    "a long-distance sleeper train crossing open country"
+  ];
+  function pickSettingSeed(){
+    return SETTING_SEEDS[Math.floor(Math.random() * SETTING_SEEDS.length)];
+  }
+
   function buildCfg(){
     const name = el("char-name").value.trim();
     const age = el("char-age").value;
@@ -2012,12 +2068,15 @@
     const identity = buildCfg();
     if (!identity) return;
 
-    const subgenre = el("subgenre").value;
+    const subgenreSel = el("subgenre");
+    const subgenre = subgenreSel.value === "__other__"
+      ? (el("subgenre-other").value.trim() || "horror")
+      : subgenreSel.value;
     const intensity = el("intensity").value;
     const pacing = el("pacing").value;
     const model = DEFAULT_MODEL;
 
-    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, model: model });
+    const cfg = Object.assign({}, identity, { subgenre: subgenre, intensity: intensity, pacing: pacing, settingSeed: pickSettingSeed(), model: model });
 
     const scanText = [identity.name, identity.creatures].filter(Boolean).join("\n");
     if (scanForMinorSexualContent(scanText)){
