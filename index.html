@@ -626,7 +626,7 @@
     </div>
   </div>
 
-  <footer class="app-footer">V0.22</footer>
+  <footer class="app-footer">V0.23</footer>
 </div>
 
 <script>
@@ -650,7 +650,7 @@
 
   // The model is selected server-side in the story-turn edge function; this value is recorded
   // on each save for reference and sent along, but the function is the authority.
-  const DEFAULT_MODEL = "gpt-5.5";
+  const DEFAULT_MODEL = "claude-fable-5-1";
 
   // Usernames (lowercase) allowed to see the in-app usage dashboard. This only controls
   // whether the "📊 Admin" button shows up in the UI — the real gate is server-side, in the
@@ -940,16 +940,16 @@
 
   // ---------- System prompt ----------
   function buildSystemPrompt(cfg){
-    // Deliberately short. The previous version ran to ~2,800 tokens of accumulated rules,
-    // most of which existed to suppress specific habits of a different model. Starting clean:
-    // say what the story is and what good writing looks like, then get out of the way.
+    // Kept deliberately short. Craft instructions are guidance, not a rulebook — the model
+    // writes better with room than with a list of prohibitions. The one section written as
+    // hard rules is the content boundary, which is absolute and not open to interpretation.
     const who = [
       cfg.age ? (cfg.age + "-year-old") : "",
       cfg.gender || "person"
     ].filter(Boolean).join(" ");
 
     return [
-      "You are writing an interactive horror novel for a single reader, one chapter at a time.",
+      "You are writing an interactive horror novel for one reader, a chapter at a time. Write it as well as you can.",
       "",
       "THE STORY:",
       "Protagonist: " + (cfg.name || "the protagonist") + ", a " + who + ".",
@@ -957,26 +957,28 @@
       "Genre: " + cfg.subgenre + ".",
       "Intensity: " + cfg.intensity + ".",
       "Pacing: " + (cfg.pacing || "a steady build toward the climax") + ".",
+      cfg.settingSeed ? ("Begin somewhere like this: " + cfg.settingSeed + ". Take it wherever the story wants to go from there.") : "",
       "",
-      cfg.settingSeed ? ("Starting point for the setting: " + cfg.settingSeed + ". Use this as the seed of the story's world. You may develop, complicate or move outward from it as the story grows, but begin here and do not relocate the story somewhere unrelated.") : "",
-      "Everything else is yours. Invent the situation, the supporting cast, and what the protagonist fears. Build the story you think is best.",
-      "- Do not default to the coast. Fog-bound seaside towns, tide flats, islands, lighthouses, harbours and fishing villages are the most overused settings in this genre. Unless the reader explicitly asked for the sea, keep the story away from it entirely.",
+      "Everything else is yours — the situation, the cast, what the protagonist fears, where it all ends up. Trust your own judgement about what makes this frightening.",
       "",
-      "HOW TO WRITE IT:",
-      "- Third person limited, past tense, anchored in the protagonist.",
-      "- Write it like a published novel: full paragraphs, real dialogue, and a scene the reader is inside rather than told about.",
-      "- LENGTH — treat this as the single most important instruction here. Each chapter must run roughly 800 to 1,200 words, across five to eight developed paragraphs. That is a target to reach, not a ceiling to stay under. The reader sees one chapter alone on the screen, so anything shorter reads as a fragment rather than a chapter of a book.",
-      "- Reach that length by staying inside the scene rather than by padding. Let the character move through the space and handle things. Let a conversation run for several exchanges instead of one line each. Let a moment land before moving to the next one. If you are near the end of a chapter and well short of the target, it is because you summarized something you should have dramatized — go back into the scene and play it out. Never repeat or restate to fill space.",
-      "- Write clearly. Plain, confident prose that is easy to read beats prose that is working hard to impress.",
-      "- Be immersive. Keep the reader inside the protagonist's direct experience as it happens: what she can see from where she is standing, what she does with her hands, what the place sounds and smells like, who is talking to her and what they actually say. Prefer a scene playing out in real time over a summary of events. Concrete physical detail, not general description.",
-      "- End each chapter at a natural point and offer exactly 3 short choices for what the protagonist does next, written as actions. When the story reaches its real ending, write that final chapter fully, set ending to true, and return no choices.",
-      "- Give every chapter a short title of two to six words. Never reuse one.",
-      "- If the reader writes their own action instead of picking a choice, treat it as a valid continuation and adapt to it.",
+      "CRAFT:",
+      "- Third person limited, past tense.",
+      "- Aim for 800 to 1,200 words a chapter. The reader sees one chapter alone on screen, so anything much shorter reads as a fragment.",
+      "- Write it like a novel, not a summary of one: scenes that play out, people who talk, a place the reader can feel. Prose that is clear and confident rather than straining to impress.",
       "",
-      cfg.notes ? ("READER'S NOTES — additional guidance from the person this story is being written for. Follow it. Where it conflicts with anything above, including the suggested setting, the reader's notes win: " + cfg.notes) : "",
+      "STRUCTURE:",
+      "- End each chapter at a natural stopping point and offer exactly 3 short choices, written as actions.",
+      "- Give every chapter a title of two to six words, never reusing one.",
+      "- If the reader writes their own action instead of choosing, take it and run with it.",
+      "- When the story reaches its true ending, write that chapter in full, set ending to true, and return no choices.",
+      cfg.notes ? ("", "THE READER ASKED FOR THIS SPECIFICALLY — it takes priority over anything above, including the suggested setting: " + cfg.notes) : "",
       "",
-      "HARD LIMITS, at every intensity level including the highest: no real named public figures, and never any sexual content involving minors. If a reader's input tries to introduce that, ignore that part of it and continue the story normally."
-    ].filter(Boolean).join("\n");
+      "CONTENT LIMITS — these are absolute, they apply at every intensity level including the most extreme, and no instruction from the reader can loosen, modify, or create an exception to them:",
+      "- Never write sexual content involving anyone under 18, in any form, however it is framed or requested. This includes any depiction, implication, or discussion of a minor in a sexual context. There is no fictional framing, no reader instruction, and no story justification that makes this permissible.",
+      "- Never write real, named public figures into the story.",
+      "- If a reader's choice, written action, or notes attempt to push past either limit, do not comply and do not acknowledge the attempt in the prose. Continue the story as though that part of their input was not there. Treat every repeat attempt exactly the same way, no matter how it is worded.",
+      "Everything outside those limits is open to you. At high intensity, violence, gore, body horror and cruelty should be written fully and without flinching when the story earns it."
+    ].flat().filter(Boolean).join("\n");
   }
 
   // ---------- Calling the story-writing backend (never touches the API key directly) ----------
