@@ -190,6 +190,8 @@
   .history-row:last-child{ border-bottom:none; }
   .history-row span{ font-size: 0.92rem; }
   .history-row-actions{ display:flex; gap:8px; flex-shrink:0; }
+  .btn-at-cap{ opacity: 0.55; }
+  #dash-new-hint{ color: var(--accent-bright); font-style: normal; }
   .btn-danger{ color: #d98a8a; }
   .btn-danger:hover:not(:disabled){ border-color: var(--accent-bright); color: #f2c9c9; }
 
@@ -626,7 +628,7 @@
     </div>
   </div>
 
-  <footer class="app-footer">V0.23</footer>
+  <footer class="app-footer">V0.25</footer>
 </div>
 
 <script>
@@ -650,7 +652,7 @@
 
   // The model is selected server-side in the story-turn edge function; this value is recorded
   // on each save for reference and sent along, but the function is the authority.
-  const DEFAULT_MODEL = "claude-fable-5-1";
+  const DEFAULT_MODEL = "claude-opus-5";
 
   // Usernames (lowercase) allowed to see the in-app usage dashboard. This only controls
   // whether the "📊 Admin" button shows up in the UI — the real gate is server-side, in the
@@ -988,6 +990,11 @@
   // instead of as unparseable text the client had to guess about.
   async function callStoryTurn(systemPrompt, messages, model){
     let resp;
+    // Time the request. When fetch rejects outright the browser gives no status and no body,
+    // so elapsed time is the only signal that separates the two very different causes:
+    // a near-instant failure is CORS or a missing function, while a failure after a long wait
+    // is the server killing a request that ran past its limit.
+    const startedAt = Date.now();
     try{
       resp = await authedFetch(FUNCTIONS_URL + "/" + EDGE_FUNCTION_NAME, {
         method: "POST",
@@ -995,7 +1002,11 @@
         body: JSON.stringify({ system: systemPrompt, messages: messages, model: model })
       });
     } catch(networkErr){
-      throw new Error("Could not reach the story server. Check your internet connection and try again.");
+      const seconds = Math.round((Date.now() - startedAt) / 1000);
+      if (seconds >= 60){
+        throw new Error("The chapter was still being written after " + seconds + " seconds and the connection was dropped. The writing model is too slow for this story's length — it needs changing in the story-turn function.");
+      }
+      throw new Error("Could not reach the story server (failed after " + seconds + "s). Check your internet connection and try again.");
     }
 
     let data = null;
@@ -1404,12 +1415,18 @@
     }
   }
 
+  let atStoryCap = false;
   function updateNewStoryAvailability(inProgressCount){
-    const atCap = inProgressCount >= MAX_IN_PROGRESS;
-    el("dash-new-btn").disabled = atCap;
+    atStoryCap = inProgressCount >= MAX_IN_PROGRESS;
+    // Deliberately NOT disabled. A disabled button fires no click event, so at the cap the
+    // button was simply dead on press — which reads as "the app is broken" rather than
+    // "you've hit a limit". It stays clickable and explains itself instead.
+    const btn = el("dash-new-btn");
+    btn.disabled = false;
+    btn.classList.toggle("btn-at-cap", atStoryCap);
     const hint = el("dash-new-hint");
-    hint.style.display = atCap ? "block" : "none";
-    hint.textContent = atCap ? ("You have " + MAX_IN_PROGRESS + " stories in progress — finish or abandon one to start another.") : "";
+    hint.style.display = atStoryCap ? "block" : "none";
+    hint.textContent = atStoryCap ? ("You have " + MAX_IN_PROGRESS + " stories in progress, which is the maximum. Finish or abandon one above to start another.") : "";
   }
 
   function renderDashboard(inProgressList, completed){
@@ -2017,7 +2034,15 @@
   el("logout-btn-setup").addEventListener("click", logout);
   el("logout-btn-story").addEventListener("click", logout);
   el("logout-btn-ending").addEventListener("click", logout);
-  el("dash-new-btn").addEventListener("click", function(){ setSetupMode("freeform"); showScreen(setupScreen); });
+  el("dash-new-btn").addEventListener("click", function(){
+    if (atStoryCap){
+      showError("You already have " + MAX_IN_PROGRESS + " stories in progress, which is the maximum. Finish or abandon one from the list above, then start a new one.");
+      return;
+    }
+    clearError();
+    setSetupMode("freeform");
+    showScreen(setupScreen);
+  });
 
   // ---------- Feedback form (v0.14) ----------
   el("feedback-open-btn").addEventListener("click", function(){
