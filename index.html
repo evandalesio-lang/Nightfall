@@ -628,7 +628,7 @@
     </div>
   </div>
 
-  <footer class="app-footer">V0.26</footer>
+  <footer class="app-footer">V0.27</footer>
 </div>
 
 <script>
@@ -974,6 +974,7 @@
       "- Third person limited, past tense.",
       "- Aim for 800 to 1,200 words a chapter. The reader sees one chapter alone on screen, so anything much shorter reads as a fragment.",
       "- Write it like a novel, not a summary of one: scenes that play out, people who talk, a place the reader can feel. Prose that is clear and confident rather than straining to impress.",
+      "- Plain prose only, with one exception: *single asterisks* around a word or short phrase render as italics, so use them where a novel would italicise. No headings, lists, bold, or any other formatting — anything else arrives on the page as raw characters.",
       "",
       "STRUCTURE:",
       "- End each chapter at a natural stopping point and offer exactly 3 short choices, written as actions.",
@@ -1087,11 +1088,46 @@
     div.textContent = "→ " + text;
     return div;
   }
+  // The model writes emphasis in markdown (*like this*), which used to render as literal
+  // asterisks because chapter text is set with textContent. This turns it into real italics.
+  //
+  // Built out of DOM nodes rather than innerHTML, deliberately. Narration can quote the
+  // reader's own typed action back at them, so this text must never be parsed as HTML — a
+  // reader typing a <script> tag into the custom-action box would otherwise have it executed.
+  // Everything here goes through createTextNode or .textContent, so markup is impossible.
+  //
+  // **strong** is matched before *em* so the double asterisks aren't eaten as a single pair.
+  const INLINE_MD = /\*\*([^*\n]+)\*\*|\*([^*\n]+)\*/g;
+  function appendInline(container, text){
+    const s = String(text || "");
+    let lastIndex = 0;
+    let m;
+    INLINE_MD.lastIndex = 0;
+    while ((m = INLINE_MD.exec(s)) !== null){
+      if (m.index > lastIndex){
+        container.appendChild(document.createTextNode(s.slice(lastIndex, m.index)));
+      }
+      const strong = m[1] !== undefined;
+      const node = document.createElement(strong ? "strong" : "em");
+      node.textContent = strong ? m[1] : m[2];
+      container.appendChild(node);
+      lastIndex = m.index + m[0].length;
+    }
+    if (lastIndex < s.length){
+      container.appendChild(document.createTextNode(s.slice(lastIndex)));
+    }
+  }
+
+  // Strip the markers for plain-text contexts (the download), where they'd just be noise.
+  function stripInlineMd(text){
+    return String(text || "").replace(/\*\*([^*\n]+)\*\*/g, "$1").replace(/\*([^*\n]+)\*/g, "$1");
+  }
+
   function paragraphsInto(container, text){
     String(text || "").split(/\n{2,}/).forEach(function(para){
       if (!para.trim()) return;
       const p = document.createElement("p");
-      p.textContent = para.trim();
+      appendInline(p, para.trim());
       container.appendChild(p);
     });
   }
@@ -1378,7 +1414,7 @@
         const t = String(entry.title || "").trim();
         lines.push("CHAPTER " + chapterNumeral(chapterNo) + (t ? " \u2014 " + t : ""));
         lines.push("");
-        lines.push(entry.text);
+        lines.push(stripInlineMd(entry.text));
         lines.push("");
       }
     });
