@@ -628,7 +628,7 @@
     </div>
   </div>
 
-  <footer class="app-footer">V0.27</footer>
+  <footer class="app-footer">V0.29</footer>
 </div>
 
 <script>
@@ -659,7 +659,7 @@
 
   // The model is selected server-side in the story-turn edge function; this value is recorded
   // on each save for reference and sent along, but the function is the authority.
-  const DEFAULT_MODEL = "claude-opus-5";
+  const DEFAULT_MODEL = "claude-opus-5-5";
 
   // Usernames (lowercase) allowed to see the in-app usage dashboard. This only controls
   // whether the "📊 Admin" button shows up in the UI — the real gate is server-side, in the
@@ -965,7 +965,7 @@
       cfg.creatures ? ("Include this creature or entity: " + cfg.creatures + ".") : "",
       "Genre: " + cfg.subgenre + ".",
       "Intensity: " + cfg.intensity + ".",
-      "Pacing: " + (cfg.pacing || "a steady build toward the climax") + ".",
+      "Pacing: " + (cfg.pacing || "a steady build toward the climax") + ". Pacing governs how quickly the horror escalates, not how quickly the story reaches its conclusion — even the fastest pacing still unfolds across many chapters.",
       cfg.settingSeed ? ("Begin somewhere like this: " + cfg.settingSeed + ". Take it wherever the story wants to go from there.") : "",
       "",
       "Everything else is yours — the situation, the cast, what the protagonist fears, where it all ends up. Trust your own judgement about what makes this frightening.",
@@ -977,7 +977,10 @@
       "- Plain prose only, with one exception: *single asterisks* around a word or short phrase render as italics, so use them where a novel would italicise. No headings, lists, bold, or any other formatting — anything else arrives on the page as raw characters.",
       "",
       "STRUCTURE:",
-      "- End each chapter at a natural stopping point and offer exactly 3 short choices, written as actions.",
+      "- This is a long story told across many chapters, not a short story delivered in one. Chapter one's job is to open questions, not answer them: establish the character and the place, let the first wrongness arrive, and stop. Do not reveal the story's central secret, deliver its emotional climax, or resolve the protagonist's inner conflict in an early chapter — the reader is meant to uncover those through the choices they make over many turns. If you find yourself writing the moment everything becomes clear, you are several chapters early.",
+      "- Do not hand the protagonist a fully-formed traumatic backstory as settled fact. A past can exist and can surface later, but it should be discovered in pieces through play, not stated outright before the reader has made a single choice.",
+      "- Hold internal continuity within a chapter. Someone who just spoke to the protagonist still knows she is there a paragraph later. Established facts about the scene stay established unless the story deliberately breaks them and the break is the point.",
+      "- End each chapter at a natural stopping point and offer exactly 3 short choices, written as actions. The choices should genuinely branch — each one should lead somewhere different, not be three ways of phrasing the same next beat.",
       "- Give every chapter a title of two to six words, never reusing one.",
       "- If the reader writes their own action instead of choosing, take it and run with it.",
       "- When the story reaches its true ending, write that chapter in full, set ending to true, and return no choices.",
